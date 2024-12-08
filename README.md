@@ -2,6 +2,8 @@
 Texture Connector is a tool for Autodesk Maya that automates the assignment and connection of textures to 
 materials
 
+![Texture Connector](.github/texture_connector_ui.png)
+
 ## Table of Contents
 - [Installation](#installation)
 - [Shelf Button Creation](#shelf-button-creation)
@@ -13,9 +15,9 @@ materials
    - Select the `Download ZIP` option to download the compressed file
 2. Extract the ZIP file:
    - Extract the downloaded ZIP file
-3. Move the files to Maya’s scripts folder:
+3. Move the files to Maya’s `scripts` folder:
    - Open the extracted folder named `texture-connector-master`
-   - Copy the `texture_connector` folder into Maya’s scripts directory
+   - Copy the `texture_connector` folder into Maya’s `scripts` directory
      - On Windows: `C:\Users\<YourUsername>\Documents\maya\scripts`
      - On macOS: `~/Documents/maya/scripts`
      - On Linux: `~/maya/scripts`
