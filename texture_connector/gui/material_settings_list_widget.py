@@ -2,7 +2,7 @@
 ========================================================================================================================
 Name: material_settings_list_widget.py
 Author: Mauricio Gonzalez Soto
-Updated Date: 12-01-2024
+Updated Date: 12-08-2024
 
 Copyright (C) 2024 Mauricio Gonzalez Soto. All rights reserved.
 ========================================================================================================================
@@ -30,7 +30,7 @@ class MaterialSettingsListWidget(QtWidgets.QWidget):
     update_clicked = QtCore.Signal()
 
     def __init__(self) -> None:
-        super(MaterialSettingsListWidget, self).__init__()
+        super().__init__()
 
         self.image_extensions = tuple([color_space.value for color_space in config.ImageExtensions])
         self.folder_path = None
@@ -109,7 +109,12 @@ class MaterialSettingsListWidget(QtWidgets.QWidget):
     def _update_materials_clicked_push_button(self) -> None:
         self.update_clicked.emit()
 
-    def create_material_settings_widgets(self, folder_path: str, texture_maps_suffix: tuple[tuple[str, str], ...]) -> None:
+    def create_material_settings_widgets(
+            self,
+            folder_path: str,
+            texture_maps_suffix: tuple[tuple[str, str], ...]
+    ) -> None:
+
         self.folder_path = folder_path
 
         self._clear_material_settings_widgets()
@@ -171,7 +176,11 @@ class MaterialSettingsListWidget(QtWidgets.QWidget):
         else:
             return ''
 
-    def _get_material_texture_paths(self, texture_maps_suffix: tuple[tuple[str, str], ...]) -> dict[str, list[tuple[str, str]]]:
+    def _get_material_texture_paths(
+            self,
+            texture_maps_suffix: tuple[tuple[str, str], ...]
+    ) -> dict[str, list[tuple[str, str]]]:
+
         materials = defaultdict(list)
         files = glob.glob(f'{self.folder_path}/*')
         files.sort(reverse=True)

@@ -2,7 +2,7 @@
 ========================================================================================================================
 Name: material_texture_map_settings_widget.py
 Author: Mauricio Gonzalez Soto
-Updated Date: 12-01-2024
+Updated Date: 12-08-2024
 
 Copyright (C) 2024 Mauricio Gonzalez Soto. All rights reserved.
 ========================================================================================================================
@@ -20,7 +20,7 @@ from texture_connector.gui.texture_map_settings_widget import TextureMapSettings
 class MaterialTextureMapSettingsWidget(QtWidgets.QWidget):
 
     def __init__(self) -> None:
-        super(MaterialTextureMapSettingsWidget, self).__init__()
+        super().__init__()
 
         self._create_widgets()
         self._create_layouts()

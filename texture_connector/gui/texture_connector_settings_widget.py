@@ -2,7 +2,7 @@
 ========================================================================================================================
 Name: texture_connector_settings_widget.py
 Author: Mauricio Gonzalez Soto
-Updated Date: 12-01-2024
+Updated Date: 12-08-2024
 
 Copyright (C) 2024 Mauricio Gonzalez Soto. All rights reserved.
 ========================================================================================================================
@@ -34,10 +34,10 @@ logger = logging.getLogger(__name__)
 
 
 class TextureConnectorSettingsWidget(QtWidgets.QWidget):
-    NAME = 'mauriceTextureConnector'
+    NAME = 'textureConnector'
     
     def __init__(self) -> None:
-        super(TextureConnectorSettingsWidget, self).__init__()
+        super().__init__()
 
         self.settings_path = ''
 

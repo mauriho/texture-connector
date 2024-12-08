@@ -2,7 +2,7 @@
 ========================================================================================================================
 Name: create_material_network_redshift.py
 Author: Mauricio Gonzalez Soto
-Updated Date: 12-01-2024
+Updated Date: 12-08-2024
 
 Copyright (C) 2024 Mauricio Gonzalez Soto. All rights reserved.
 ========================================================================================================================
@@ -27,15 +27,15 @@ class CreateMaterialNetworkRedshift(CreateMaterialNetwork):
     TRIPLANAR_COLOR_OUTPUT_NAME = 'outColor'
 
     def __init__(self) -> None:
-        super(CreateMaterialNetworkRedshift, self).__init__()
+        super().__init__()
 
     def _create_emissive_network(self) -> None:
-        super(CreateMaterialNetworkRedshift, self)._create_emissive_network()
+        super()._create_emissive_network()
 
         cmds.setAttr(f'{self.material}.emission_weight', 1)
 
     def _create_triplanar_node_network(self, name: str) -> str:
-        super(CreateMaterialNetworkRedshift, self)._create_triplanar_node_network(name)
+        super()._create_triplanar_node_network(name)
 
         triplanar_node = cmds.shadingNode('RedshiftTriPlanar', asTexture=True, name=f'{name}_RedshiftTriPlanar')
 

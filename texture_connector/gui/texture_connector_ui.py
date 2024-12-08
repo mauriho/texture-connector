@@ -2,7 +2,7 @@
 ========================================================================================================================
 Name: texture_connector_ui.py
 Author: Mauricio Gonzalez Soto
-Updated Date: 12-01-2024
+Updated Date: 12-08-2024
 
 Copyright (C) 2024 Mauricio Gonzalez Soto. All rights reserved.
 ========================================================================================================================
@@ -59,7 +59,7 @@ class TextureConnectorUI(QtWidgets.QDialog):
         return main_window
 
     def __init__(self) -> None:
-        super(TextureConnectorUI, self).__init__(self.maya_main_window())
+        super().__init__(self.maya_main_window())
 
         self.geometry = None
 
@@ -334,14 +334,14 @@ class TextureConnectorUI(QtWidgets.QDialog):
         self.material_settings_list_widget.set_texture_map_widgets_enabled(
             widgets_enabled=self.texture_connector_settings_widget.get_texture_maps_enabled())
 
-    def closeEvent(self, e: any) -> None:
+    def closeEvent(self, event: QtGui.QCloseEvent) -> None:
         if isinstance(self, TextureConnectorUI):
-            super(TextureConnectorUI, self).closeEvent(e)
+            super().closeEvent(event)
 
             self.geometry = self.saveGeometry()
 
-    def showEvent(self, e: any) -> None:
-        super(TextureConnectorUI, self).showEvent(e)
+    def showEvent(self, event: QtGui.QCloseEvent) -> None:
+        super().showEvent(event)
 
         if self.geometry:
             self.restoreGeometry(self.geometry)

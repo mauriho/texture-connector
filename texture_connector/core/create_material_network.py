@@ -2,7 +2,7 @@
 ========================================================================================================================
 Name: create_material_network.py
 Author: Mauricio Gonzalez Soto
-Updated Date: 12-01-2024
+Updated Date: 12-08-2024
 
 Copyright (C) 2024 Mauricio Gonzalez Soto. All rights reserved.
 ========================================================================================================================
@@ -15,7 +15,7 @@ import maya.cmds as cmds
 from texture_connector.config import UVTilingModes
 
 
-class CreateMaterialNetwork(object):
+class CreateMaterialNetwork:
     TEXTURE_CONNECTOR = 'Texture Connector'
 
     MATERIAL_NODE = None
@@ -130,7 +130,7 @@ class CreateMaterialNetwork(object):
         cmds.select(clear=True)
 
         MGlobal.displayInfo(
-            f'[{CreateMaterialNetwork.TEXTURE_CONNECTOR}] Created \'{self.name}\' material network successfully.')
+            f'[{CreateMaterialNetwork.TEXTURE_CONNECTOR}] Created {self.name!r} material network successfully.')
 
         cmds.undoInfo(chunkName='CreateMaterialNetwork', closeChunk=True)
 

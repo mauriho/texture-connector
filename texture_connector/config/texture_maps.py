@@ -2,14 +2,14 @@
 ========================================================================================================================
 Name: texture_maps.py
 Author: Mauricio Gonzalez Soto
-Updated Date: 11-29-2024
+Updated Date: 12-08-2024
 
 Copyright (C) 2024 Mauricio Gonzalez Soto. All rights reserved.
 ========================================================================================================================
 """
 
 
-class TextureMaps(object):
+class TextureMaps:
     BASE_COLOR = 'basecolor'
     ROUGHNESS = 'roughness'
     METALNESS = 'metallic'

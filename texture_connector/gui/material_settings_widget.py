@@ -2,7 +2,7 @@
 ========================================================================================================================
 Name: material_settings_widget.py
 Author: Mauricio Gonzalez Soto
-Updated Date: 12-01-2024
+Updated Date: 12-08-2024
 
 Copyright (C) 2024 Mauricio Gonzalez Soto. All rights reserved.
 ========================================================================================================================
@@ -22,7 +22,7 @@ class MaterialSettingsWidget(QtWidgets.QWidget):
     enable_toggled = QtCore.Signal(bool)
 
     def __init__(self) -> None:
-        super(MaterialSettingsWidget, self).__init__()
+        super().__init__()
 
         self._create_widgets()
         self._create_layouts()
