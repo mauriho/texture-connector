@@ -2,7 +2,7 @@
 ========================================================================================================================
 Name: create_material_network.py
 Author: Mauricio Gonzalez Soto
-Updated Date: 12-08-2024
+Updated Date: 12-12-2024
 
 Copyright (C) 2024 Mauricio Gonzalez Soto. All rights reserved.
 ========================================================================================================================
@@ -85,13 +85,6 @@ class CreateMaterialNetwork:
         self.opacity_suffix = ''
         self.opacity_triplanar_node = ''
 
-    def _load_plugins(self) -> None:
-        plugins_loaded = cmds.pluginInfo(listPlugins=True, query=True)
-        look_dev_kit_plugin = 'lookdevKit'
-
-        if look_dev_kit_plugin not in plugins_loaded and self.use_triplanar:
-            cmds.loadPlugin(f'{look_dev_kit_plugin}.py')
-
     def create(self, name: str, use_triplanar: bool, uv_tiling_mode: str) -> None:
         self.name = name
         self.use_triplanar = use_triplanar
@@ -129,39 +122,44 @@ class CreateMaterialNetwork:
 
         cmds.select(clear=True)
 
-        MGlobal.displayInfo(
-            f'[{CreateMaterialNetwork.TEXTURE_CONNECTOR}] Created {self.name!r} material network successfully.')
+        MGlobal.displayInfo(f'[{CreateMaterialNetwork.TEXTURE_CONNECTOR}] Created {self.name!r} material network.')
 
         cmds.undoInfo(chunkName='CreateMaterialNetwork', closeChunk=True)
 
-    def _create_standard_network(self, material_input_name: str, out_alpha: bool, suffix: str) -> tuple[str, str]:
-        name = f'{self.name}_{suffix}'
+    def set_base_color_settings(self, color_space: str, file_path: str, suffix: str) -> None:
+        self.base_color_color_space = color_space
+        self.base_color_file_path = file_path
+        self.base_color_suffix = suffix
 
-        file_node = self._create_file_node_network(name=name)
-        triplanar_node = ''
+    def set_emissive_settings(self, color_space: str, file_path: str, suffix: str) -> None:
+        self.emissive_color_space = color_space
+        self.emissive_file_path = file_path
+        self.emissive_suffix = suffix
 
-        if self.use_triplanar:
-            triplanar_node = self._create_triplanar_node_network(name=name)
-            out = self.TRIPLANAR_ALPHA_OUTPUT_NAME if out_alpha else self.TRIPLANAR_COLOR_OUTPUT_NAME
+    def set_height_settings(self, color_space: str, file_path: str, suffix: str) -> None:
+        self.height_color_space = color_space
+        self.height_file_path = file_path
+        self.height_suffix = suffix
 
-            cmds.connectAttr(
-                f'{file_node}.outColor',
-                f'{triplanar_node}.{self.TRIPLANAR_INPUT_NAME}',
-                force=True)
+    def set_metalness_settings(self, color_space: str, file_path: str, suffix: str) -> None:
+        self.metalness_color_space = color_space
+        self.metalness_file_path = file_path
+        self.metalness_suffix = suffix
 
-            cmds.connectAttr(
-                f'{triplanar_node}.{out}',
-                f'{self.material}.{material_input_name}',
-                force=True)
-        else:
-            out = 'outAlpha' if out_alpha else 'outColor'
+    def set_normal_settings(self, color_space: str, file_path: str, suffix: str) -> None:
+        self.normal_color_space = color_space
+        self.normal_file_path = file_path
+        self.normal_suffix = suffix
 
-            cmds.connectAttr(
-                f'{file_node}.{out}',
-                f'{self.material}.{material_input_name}',
-                force=True)
+    def set_opacity_settings(self, color_space: str, file_path: str, suffix: str) -> None:
+        self.opacity_color_space = color_space
+        self.opacity_file_path = file_path
+        self.opacity_suffix = suffix
 
-        return file_node, triplanar_node
+    def set_roughness_settings(self, color_space: str, file_path: str, suffix: str) -> None:
+        self.roughness_color_space = color_space
+        self.roughness_file_path = file_path
+        self.roughness_suffix = suffix
 
     def _create_base_color_network(self) -> None:
         self.base_color_file_node, self.base_color_triplanar_node = self._create_standard_network(
@@ -266,7 +264,7 @@ class CreateMaterialNetwork:
 
         cmds.setAttr(f'{self.height_file_node}.alphaIsLuminance', True)
 
-    def _create_material(self):
+    def _create_material(self) -> None:
         self.material = cmds.shadingNode(
             self.MATERIAL_NODE,
             asShader=True,
@@ -369,44 +367,45 @@ class CreateMaterialNetwork:
 
         cmds.setAttr(f'{self.roughness_file_node}.alphaIsLuminance', True)
 
+    def _create_standard_network(self, material_input_name: str, out_alpha: bool, suffix: str) -> tuple[str, str]:
+        name = f'{self.name}_{suffix}'
+
+        file_node = self._create_file_node_network(name=name)
+        triplanar_node = ''
+
+        if self.use_triplanar:
+            triplanar_node = self._create_triplanar_node_network(name=name)
+            out = self.TRIPLANAR_ALPHA_OUTPUT_NAME if out_alpha else self.TRIPLANAR_COLOR_OUTPUT_NAME
+
+            cmds.connectAttr(
+                f'{file_node}.outColor',
+                f'{triplanar_node}.{self.TRIPLANAR_INPUT_NAME}',
+                force=True)
+
+            cmds.connectAttr(
+                f'{triplanar_node}.{out}',
+                f'{self.material}.{material_input_name}',
+                force=True)
+        else:
+            out = 'outAlpha' if out_alpha else 'outColor'
+
+            cmds.connectAttr(
+                f'{file_node}.{out}',
+                f'{self.material}.{material_input_name}',
+                force=True)
+
+        return file_node, triplanar_node
+
     def _create_triplanar_node_network(self, name: str) -> any:
         if not cmds.objExists(self.float_constant_node):
             self._create_float_constant_node()
 
-    def set_base_color_settings(self, color_space, file_path: str, suffix: str) -> None:
-        self.base_color_color_space = color_space
-        self.base_color_file_path = file_path
-        self.base_color_suffix = suffix
+    def _load_plugins(self) -> None:
+        plugins_loaded = cmds.pluginInfo(listPlugins=True, query=True)
+        look_dev_kit_plugin = 'lookdevKit'
 
-    def set_emissive_settings(self, color_space, file_path: str, suffix: str) -> None:
-        self.emissive_color_space = color_space
-        self.emissive_file_path = file_path
-        self.emissive_suffix = suffix
-
-    def set_height_settings(self, color_space, file_path: str, suffix: str) -> None:
-        self.height_color_space = color_space
-        self.height_file_path = file_path
-        self.height_suffix = suffix
-
-    def set_metalness_settings(self, color_space, file_path: str, suffix: str) -> None:
-        self.metalness_color_space = color_space
-        self.metalness_file_path = file_path
-        self.metalness_suffix = suffix
-
-    def set_normal_settings(self, color_space, file_path: str, suffix: str) -> None:
-        self.normal_color_space = color_space
-        self.normal_file_path = file_path
-        self.normal_suffix = suffix
-
-    def set_opacity_settings(self, color_space, file_path: str, suffix: str) -> None:
-        self.opacity_color_space = color_space
-        self.opacity_file_path = file_path
-        self.opacity_suffix = suffix
-
-    def set_roughness_settings(self, color_space, file_path: str, suffix: str) -> None:
-        self.roughness_color_space = color_space
-        self.roughness_file_path = file_path
-        self.roughness_suffix = suffix
+        if look_dev_kit_plugin not in plugins_loaded and self.use_triplanar:
+            cmds.loadPlugin(f'{look_dev_kit_plugin}.py')
 
     def _set_texture_file_node_settings(self, color_space: str, file_path: str, node: str) -> None:
         cmds.setAttr(f'{node}.ignoreColorSpaceFileRules', True)

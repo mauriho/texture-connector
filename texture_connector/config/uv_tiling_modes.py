@@ -15,4 +15,4 @@ class UVTilingModes:
     OFF = 'Off'
     ZBRUSH = '0-based (ZBrush)'  # u0_v0
     MUDBOX = '1-based (MudBox)'  # u1_v1
-    MARI = 'UDIM (Mari)'  # 1000+(u+1+v*10)
+    MARI = 'UDIM (Mari)'         # 1000+(u+1+v*10)
