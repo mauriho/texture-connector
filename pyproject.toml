@@ -1,0 +1,21 @@
+[project]
+name = "texture_connector"
+description = "Texture Connector is a tool for Autodesk Maya that automates the assignment and connection of textures to materials."
+version = "0.0.1"
+authors = [
+    {name = "Mauricio Gonzalez Soto"}
+]
+readme = "README.md"
+requires-python = ">=3.7"
+dependencies = [
+    "PySide2",
+]
+
+[project.optional-dependencies]
+dev = [
+    "maya-stubs"
+]
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
