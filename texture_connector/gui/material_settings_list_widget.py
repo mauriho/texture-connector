@@ -2,7 +2,7 @@
 ========================================================================================================================
 Name: material_settings_list_widget.py
 Author: Mauricio Gonzalez Soto
-Updated Date: 12-08-2024
+Updated Date: 12-12-2024
 
 Copyright (C) 2024 Mauricio Gonzalez Soto. All rights reserved.
 ========================================================================================================================
@@ -19,21 +19,28 @@ except ImportError:
 from collections import defaultdict
 import pathlib
 import glob
-import sys
 import re
 
 from texture_connector.gui.material_settings_widget import MaterialSettingsWidget
 import texture_connector.config as config
+import texture_connector.utils as utils
 
 
 class MaterialSettingsListWidget(QtWidgets.QWidget):
+    directory_changed = QtCore.Signal()
     update_clicked = QtCore.Signal()
 
     def __init__(self) -> None:
         super().__init__()
 
         self.image_extensions = tuple([color_space.value for color_space in config.ImageExtensions])
-        self.folder_path = None
+        self.folder_path = ''
+        self.texture_maps_suffix = ()
+
+        self.search_files_in_subdirectories = True
+        self.auto_update_on_file_changes = False
+
+        self.file_system_watcher = QtCore.QFileSystemWatcher()
 
         self._create_widgets()
         self._create_layouts()
@@ -80,10 +87,18 @@ class MaterialSettingsListWidget(QtWidgets.QWidget):
         main_layout.addWidget(self.update_materials_push_button)
 
     def _create_connections(self) -> None:
+        self.file_system_watcher.directoryChanged.connect(self._directory_changed_file_system_watcher)
+
         self.search_material_line_edit.textChanged.connect(self._search_material_text_changed_line_edit)
         self.unselect_all_materials_push_button.clicked.connect(self._unselect_all_clicked_action)
         self.select_all_materials_push_button.clicked.connect(self._select_all_clicked_action)
         self.update_materials_push_button.clicked.connect(self._update_materials_clicked_push_button)
+
+    def _directory_changed_file_system_watcher(self) -> None:
+        self._load_preferences()
+
+        if self.auto_update_on_file_changes:
+            self.directory_changed.emit()
 
     def _search_material_text_changed_line_edit(self, text: str) -> None:
         text_lower = text.lower()
@@ -102,24 +117,74 @@ class MaterialSettingsListWidget(QtWidgets.QWidget):
         for material_settings_widget in self.get_material_settings_widgets():
             material_settings_widget.set_enabled(True)
 
+    def _update_materials_clicked_push_button(self) -> None:
+        self.update_clicked.emit()
+
+    def _add_directory_and_subdirectories(self, folder_path):
+        self.file_system_watcher.addPath(folder_path)
+
+        q_dir = QtCore.QDir(folder_path)
+        subfolders = q_dir.entryList(QtCore.QDir.Dirs | QtCore.QDir.NoDotAndDotDot)
+
+        for subfolder in subfolders:
+            self._add_directory_and_subdirectories(q_dir.filePath(subfolder))
+
     def _clear_material_settings_widgets(self) -> None:
         for material_settings_widget in self.get_material_settings_widgets():
             material_settings_widget.deleteLater()
 
-    def _update_materials_clicked_push_button(self) -> None:
-        self.update_clicked.emit()
+    def _load_preferences(self) -> None:
+        preferences_path = utils.get_preferences_path()
 
-    def create_material_settings_widgets(
-            self,
-            folder_path: str,
-            texture_maps_suffix: tuple[tuple[str, str], ...]
-    ) -> None:
+        s = QtCore.QSettings(preferences_path, QtCore.QSettings.IniFormat)
 
-        self.folder_path = folder_path
+        s.beginGroup('preferences')
+        self.search_files_in_subdirectories = s.value('searchFilesInSubdirectories', True, bool)
+        self.auto_update_on_file_changes = s.value('autoUpdateOnFileChanges', False, bool)
+        s.endGroup()
 
+    def _get_material_texture_paths(self, ) -> dict[str, list[tuple[str, str]]]:
+
+        materials = defaultdict(list)
+
+        if self.search_files_in_subdirectories:
+            files = glob.glob(f'{self.folder_path}/**/*', recursive=True)
+        else:
+            files = glob.glob(f'{self.folder_path}/*')
+
+        files.sort(reverse=True)
+
+        for file_path in files:
+            path = pathlib.Path(file_path)
+            path_suffix = path.suffix
+
+            if path_suffix in self.image_extensions:
+                for texture_map_name, texture_map_suffix in self.texture_maps_suffix:
+                    if texture_map_suffix:
+                        material_name = self._get_material_name_from_texture_map_path(
+                            path=path,
+                            texture_map_suffix=texture_map_suffix)
+
+                        if material_name:
+                            materials[material_name].append((texture_map_name, file_path))
+
+        return dict(materials)
+
+    @staticmethod
+    def _get_material_name_from_texture_map_path(path: pathlib.Path, texture_map_suffix: str) -> str:
+        pattern = rf'(.+?)(?=_{texture_map_suffix})(?=_.*$|$)'
+        match = re.search(pattern, path.stem, re.IGNORECASE)
+
+        if match:
+            return match.group(1)
+        else:
+            return ''
+
+    def create_material_settings_widgets(self) -> None:
+        self._load_preferences()
         self._clear_material_settings_widgets()
 
-        material_texture_paths = self._get_material_texture_paths(texture_maps_suffix=texture_maps_suffix)
+        material_texture_paths = self._get_material_texture_paths()
 
         for material_name, textures_paths in material_texture_paths.items():
             material_settings_widget = MaterialSettingsWidget()
@@ -127,7 +192,7 @@ class MaterialSettingsListWidget(QtWidgets.QWidget):
             self.material_list_items_v_box_layout.addWidget(material_settings_widget)
 
             for texture_type, texture_path in textures_paths:
-                texture_path_short_name = self._remove_prefix(texture_path)
+                texture_path_short_name = utils.remove_prefix(prefix=self.folder_path, string=texture_path)
 
                 if texture_type == config.TextureMaps.BASE_COLOR:
                     base_color_settings_widget = material_settings_widget.get_base_color_settings_widget()
@@ -166,41 +231,6 @@ class MaterialSettingsListWidget(QtWidgets.QWidget):
 
         self._search_material_text_changed_line_edit(self.search_material_line_edit.text())
 
-    @staticmethod
-    def _get_material_name_from_texture_map_path(path: pathlib.Path, texture_map_suffix: str) -> str:
-        pattern = rf'(.+?)(?=_{texture_map_suffix})(?=_.*$|$)'
-        match = re.search(pattern, path.stem, re.IGNORECASE)
-
-        if match:
-            return match.group(1)
-        else:
-            return ''
-
-    def _get_material_texture_paths(
-            self,
-            texture_maps_suffix: tuple[tuple[str, str], ...]
-    ) -> dict[str, list[tuple[str, str]]]:
-
-        materials = defaultdict(list)
-        files = glob.glob(f'{self.folder_path}/*')
-        files.sort(reverse=True)
-
-        for file_path in files:
-            path = pathlib.Path(file_path)
-            path_suffix = path.suffix
-
-            if path_suffix in self.image_extensions:
-                for texture_map_name, texture_map_suffix in texture_maps_suffix:
-                    if texture_map_suffix:
-                        material_name = self._get_material_name_from_texture_map_path(
-                            path=path,
-                            texture_map_suffix=texture_map_suffix)
-
-                        if material_name:
-                            materials[material_name].append((texture_map_name, file_path))
-
-        return dict(materials)
-
     def get_material_settings_widgets(self) -> list[MaterialSettingsWidget]:
         material_settings_widgets = []
 
@@ -210,14 +240,23 @@ class MaterialSettingsListWidget(QtWidgets.QWidget):
 
         return material_settings_widgets
 
-    def _remove_prefix(self, string: str) -> str:
-        if string:
-            if sys.version_info >= (3, 9):
-                return string.removeprefix(self.folder_path)
-            elif string.startswith(self.folder_path):
-                return string[len(self.folder_path):]
+    def set_folder_path(self, folder_path: str) -> None:
+        self._load_preferences()
 
-        return string
+        self.folder_path = folder_path
+
+        file_system_watcher_directories = self.file_system_watcher.directories()
+
+        if file_system_watcher_directories:
+            self.file_system_watcher.removePaths(file_system_watcher_directories)
+
+        if self.search_files_in_subdirectories:
+            self._add_directory_and_subdirectories(self.folder_path)
+        else:
+            self.file_system_watcher.addPath(self.folder_path)
+
+    def set_texture_maps_suffix(self, texture_maps_suffix: tuple[tuple[str, str], ...]) -> None:
+        self.texture_maps_suffix = texture_maps_suffix
     
     def set_base_color_widgets_color_space(self, color_space: str) -> None:
         for material_settings_widget in self.get_material_settings_widgets():

@@ -26,6 +26,8 @@ class PreferencesUI(QtWidgets.QDialog):
     WINDOW_NAME = 'textureConnectorPreferences'
     WINDOW_TITLE = 'Preferences'
 
+    save_clicked = QtCore.Signal()
+
     def __init__(self, parent: QtWidgets.QWidget) -> None:
         super().__init__(parent)
 
@@ -78,6 +80,8 @@ class PreferencesUI(QtWidgets.QDialog):
     def _save_clicked_push_button(self) -> None:
         self._save_preferences()
         self.close()
+
+        self.save_clicked.emit()
 
     def _load_preferences(self) -> None:
         s = QtCore.QSettings(self.preferences_path, QtCore.QSettings.IniFormat)

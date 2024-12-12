@@ -2,7 +2,7 @@
 ========================================================================================================================
 Name: texture_connector_ui.py
 Author: Mauricio Gonzalez Soto
-Updated Date: 12-08-2024
+Updated Date: 12-12-2024
 
 Copyright (C) 2024 Mauricio Gonzalez Soto. All rights reserved.
 ========================================================================================================================
@@ -23,10 +23,12 @@ from maya.OpenMayaUI import MQtUtil
 from maya import cmds
 
 import webbrowser
+import os
 
 from texture_connector.gui.texture_connector_settings_widget import TextureConnectorSettingsWidget
 from texture_connector.gui.material_settings_list_widget import MaterialSettingsListWidget
 from texture_connector.gui.material_settings_widget import MaterialSettingsWidget
+from texture_connector.gui.preferences_ui import PreferencesUI
 from texture_connector.core import CreateMaterialNetworkRedshift
 from texture_connector.core import CreateMaterialNetworkArnold
 from texture_connector.core import CreateMaterialNetworkVRay
@@ -60,7 +62,7 @@ class TextureConnectorUI(QtWidgets.QDialog):
 
     def __init__(self) -> None:
         super().__init__(self.maya_main_window())
-
+        self.preferences_ui = PreferencesUI(self)
         self.geometry = None
 
         self.resize(800, 600)
@@ -77,14 +79,14 @@ class TextureConnectorUI(QtWidgets.QDialog):
         edit_menu = self.menu_bar.addMenu('Edit')
         edit_menu.addAction('Save Settings', self._save_settings)
         edit_menu.addAction('Reset Settings', self._reset_settings)
+        edit_menu.addSeparator()
+        edit_menu.addAction('Preferences', self._open_preferences)
 
         help_menu = self.menu_bar.addMenu('Help')
         help_menu.addAction('Help on Texture Connector', self._open_help)
 
         self.folder_path_line_edit = QtWidgets.QLineEdit()
-        self.folder_path_line_edit.setFocusPolicy(QtCore.Qt.NoFocus)
         self.folder_path_line_edit.setPlaceholderText('Select a folder...')
-        self.folder_path_line_edit.setReadOnly(True)
 
         push_button_size = self.folder_path_line_edit.sizeHint().height()
 
@@ -142,6 +144,7 @@ class TextureConnectorUI(QtWidgets.QDialog):
         splitter.setStretchFactor(1, 1)
 
     def _create_connections(self) -> None:
+        self.folder_path_line_edit.editingFinished.connect(self._folder_path_editing_finished_line_edit)
         self.select_folder_path_push_button.clicked.connect(self._select_folder_path_clicked_push_button)
 
         self.base_color_settings_widget.current_color_space_changed.connect(
@@ -166,9 +169,13 @@ class TextureConnectorUI(QtWidgets.QDialog):
             self._opacity_settings_current_color_space_changed_widget)
         self.opacity_settings_widget.enable_toggled.connect(self._opacity_settings_enable_toggled_widget)
 
+        self.material_settings_list_widget.directory_changed.connect(
+            self._material_settings_list_directory_changed_widget)
         self.material_settings_list_widget.update_clicked.connect(self._material_settings_list_update_clicked_widget)
 
         self.create_materials_push_button.clicked.connect(self._create_materials_clicked_push_button)
+
+        self.preferences_ui.save_clicked.connect(self._preferences_ui_save_clicked)
 
     def _save_settings(self) -> None:
         self.texture_connector_settings_widget.save_settings()
@@ -176,9 +183,22 @@ class TextureConnectorUI(QtWidgets.QDialog):
     def _reset_settings(self) -> None:
         self.texture_connector_settings_widget.load_settings()
 
+    def _open_preferences(self) -> None:
+        self.preferences_ui.show()
+
     @staticmethod
     def _open_help() -> None:
         webbrowser.open('https://github.com/mauriciogonzalezsoto/texture-connector')
+
+    def _folder_path_editing_finished_line_edit(self) -> None:
+        folder_path = self.folder_path_line_edit.text()
+
+        if folder_path:
+            if os.path.exists(folder_path):
+                self.material_settings_list_widget.set_folder_path(folder_path)
+                self._create_material_settings_widgets()
+            else:
+                MGlobal.displayError(f'{folder_path!r} does not exist.')
 
     def _select_folder_path_clicked_push_button(self) -> None:
         current_maya_project_path = cmds.workspace(rootDirectory=True, query=True)
@@ -186,7 +206,8 @@ class TextureConnectorUI(QtWidgets.QDialog):
 
         if folder_path:
             self.folder_path_line_edit.setText(folder_path)
-            self._create_material_settings_widgets(folder_path)
+            self.material_settings_list_widget.set_folder_path(folder_path)
+            self._create_material_settings_widgets()
             
     def _base_color_settings_current_color_space_changed_widget(self) -> None:
         self.material_settings_list_widget.set_base_color_widgets_color_space(
@@ -235,8 +256,11 @@ class TextureConnectorUI(QtWidgets.QDialog):
     def _opacity_settings_enable_toggled_widget(self) -> None:
         self.material_settings_list_widget.set_opacity_widgets_enabled(self.opacity_settings_widget.is_enabled())
 
+    def _material_settings_list_directory_changed_widget(self) -> None:
+        self._create_material_settings_widgets()
+
     def _material_settings_list_update_clicked_widget(self) -> None:
-        self._create_material_settings_widgets(folder_path=self.folder_path_line_edit.text())
+        self._create_material_settings_widgets()
 
     def _create_materials_clicked_push_button(self) -> None:
         render_engine = self.texture_connector_settings_widget.get_render_engine()
@@ -258,7 +282,7 @@ class TextureConnectorUI(QtWidgets.QDialog):
                     return
 
                 if material_network:
-                    self.create_material_network(
+                    self._create_material_network(
                         material_network=material_network,
                         material_settings_widget=material_settings_widget)
 
@@ -269,8 +293,12 @@ class TextureConnectorUI(QtWidgets.QDialog):
         else:
             MGlobal.displayWarning(f'[{TextureConnectorUI.WINDOW_TITLE}] No material has been created.')
 
-    def create_material_network(self, material_network: CreateMaterialNetwork,
-                                material_settings_widget: MaterialSettingsWidget) -> None:
+    def _preferences_ui_save_clicked(self):
+        self._folder_path_editing_finished_line_edit()
+        self._create_material_settings_widgets()
+
+    def _create_material_network(self, material_network: CreateMaterialNetwork,
+                                 material_settings_widget: MaterialSettingsWidget) -> None:
         if self.base_color_settings_widget.is_enabled():
             if material_settings_widget.get_base_color_settings_widget().is_enabled():
                 material_network.set_base_color_settings(
@@ -325,14 +353,15 @@ class TextureConnectorUI(QtWidgets.QDialog):
             use_triplanar=self.texture_connector_settings_widget.is_use_triplanar_checked(),
             uv_tiling_mode=self.texture_connector_settings_widget.get_uv_tiling_mode())
 
-    def _create_material_settings_widgets(self, folder_path: str) -> None:
-        self.material_settings_list_widget.create_material_settings_widgets(
-            folder_path=folder_path,
-            texture_maps_suffix=self.texture_connector_settings_widget.get_texture_maps_suffix())
-        self.material_settings_list_widget.set_texture_map_widgets_color_space(
-            widgets_color_space=self.texture_connector_settings_widget.get_texture_maps_color_space())
-        self.material_settings_list_widget.set_texture_map_widgets_enabled(
-            widgets_enabled=self.texture_connector_settings_widget.get_texture_maps_enabled())
+    def _create_material_settings_widgets(self) -> None:
+        texture_maps_suffix = self.texture_connector_settings_widget.get_texture_maps_suffix()
+        texture_maps_color_space = self.texture_connector_settings_widget.get_texture_maps_color_space()
+        texture_maps_enabled = self.texture_connector_settings_widget.get_texture_maps_enabled()
+
+        self.material_settings_list_widget.set_texture_maps_suffix(texture_maps_suffix)
+        self.material_settings_list_widget.create_material_settings_widgets()
+        self.material_settings_list_widget.set_texture_map_widgets_color_space(texture_maps_color_space)
+        self.material_settings_list_widget.set_texture_map_widgets_enabled(texture_maps_enabled)
 
     def closeEvent(self, event: QtGui.QCloseEvent) -> None:
         if isinstance(self, TextureConnectorUI):
@@ -340,7 +369,7 @@ class TextureConnectorUI(QtWidgets.QDialog):
 
             self.geometry = self.saveGeometry()
 
-    def showEvent(self, event: QtGui.QCloseEvent) -> None:
+    def showEvent(self, event: QtGui.QShowEvent) -> None:
         super().showEvent(event)
 
         if self.geometry:
