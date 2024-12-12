@@ -2,7 +2,7 @@
 ========================================================================================================================
 Name: material_texture_map_settings_widget.py
 Author: Mauricio Gonzalez Soto
-Updated Date: 12-08-2024
+Updated Date: 12-11-2024
 
 Copyright (C) 2024 Mauricio Gonzalez Soto. All rights reserved.
 ========================================================================================================================
@@ -74,15 +74,6 @@ class MaterialTextureMapSettingsWidget(QtWidgets.QWidget):
         layout.setSpacing(3)
         group_box.setLayout(layout)
 
-    def set_read_only(self) -> None:
-        self.base_color_texture_map_settings_widget.set_read_only()
-        self.roughness_texture_map_settings_widget.set_read_only()
-        self.metalness_texture_map_settings_widget.set_read_only()
-        self.normal_texture_map_settings_widget.set_read_only()
-        self.height_texture_map_settings_widget.set_read_only()
-        self.emissive_texture_map_settings_widget.set_read_only()
-        self.opacity_texture_map_settings_widget.set_read_only()
-
     def get_base_color_settings_widget(self) -> TextureMapSettingsWidget:
         return self.base_color_texture_map_settings_widget
 
@@ -103,3 +94,12 @@ class MaterialTextureMapSettingsWidget(QtWidgets.QWidget):
 
     def get_opacity_settings_widget(self) -> TextureMapSettingsWidget:
         return self.opacity_texture_map_settings_widget
+
+    def set_read_only(self) -> None:
+        self.base_color_texture_map_settings_widget.set_read_only()
+        self.roughness_texture_map_settings_widget.set_read_only()
+        self.metalness_texture_map_settings_widget.set_read_only()
+        self.normal_texture_map_settings_widget.set_read_only()
+        self.height_texture_map_settings_widget.set_read_only()
+        self.emissive_texture_map_settings_widget.set_read_only()
+        self.opacity_texture_map_settings_widget.set_read_only()

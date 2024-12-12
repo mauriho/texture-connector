@@ -2,7 +2,7 @@
 ========================================================================================================================
 Name: texture_connector_settings_widget.py
 Author: Mauricio Gonzalez Soto
-Updated Date: 12-08-2024
+Updated Date: 12-12-2024
 
 Copyright (C) 2024 Mauricio Gonzalez Soto. All rights reserved.
 ========================================================================================================================
@@ -20,7 +20,6 @@ import maya.api.OpenMaya as om
 import maya.cmds as cmds
 
 import logging
-import os
 
 from texture_connector.gui.material_texture_map_settings_widget import MaterialTextureMapSettingsWidget
 from texture_connector.gui.texture_map_settings_widget import TextureMapSettingsWidget
@@ -28,18 +27,18 @@ from texture_connector.config import RenderPlugins
 from texture_connector.config import UVTilingModes
 from texture_connector.config import TextureMaps
 from texture_connector.config import ColorSpaces
+import texture_connector.utils as utils
 
 logger = logging.getLogger(__name__)
 # logger.setLevel(logging.DEBUG)
 
 
 class TextureConnectorSettingsWidget(QtWidgets.QWidget):
-    NAME = 'textureConnector'
-    
+
     def __init__(self) -> None:
         super().__init__()
 
-        self.settings_path = ''
+        self.settings_path = utils.get_settings_path()
 
         self.material_texture_map_settings_widget = None
         self.base_color_settings_widget = None
@@ -56,7 +55,6 @@ class TextureConnectorSettingsWidget(QtWidgets.QWidget):
         self._create_layouts()
         self._set_render_engines()
         self._create_call_backs()
-        self._get_settings_path()
         self.load_settings(self.settings_path)
 
     def _create_widgets(self) -> None:
@@ -118,44 +116,26 @@ class TextureConnectorSettingsWidget(QtWidgets.QWidget):
         triplanar_form_layout.setSpacing(3)
         triplanar_group_box.setLayout(triplanar_form_layout)
 
-    def save_settings(self) -> None:
-        s = QtCore.QSettings(self.settings_path, QtCore.QSettings.IniFormat)
+    def _create_call_backs(self) -> None:
+        om.MSceneMessage.addStringArrayCallback(om.MSceneMessage.kAfterPluginLoad, self._set_render_engines)
+        om.MSceneMessage.addStringArrayCallback(om.MSceneMessage.kAfterPluginUnload, self._set_render_engines)
 
-        s.beginGroup('settings')
+    def _set_render_engines(self, *args) -> None:
+        plugins_loaded = cmds.pluginInfo(listPlugins=True, query=True)
 
-        s.setValue('baseColorEnabled', self.base_color_settings_widget.is_enabled())
-        s.setValue('baseColorSuffix', self.base_color_settings_widget.get_text())
-        s.setValue('baseColorColorSpace', self.base_color_settings_widget.get_color_space())
+        current_render_engine = self.render_engine_combo_box.currentText()
+        self.render_engine_combo_box.clear()
 
-        s.setValue('roughnessEnabled', self.roughness_settings_widget.is_enabled())
-        s.setValue('roughnessSuffix', self.roughness_settings_widget.get_text())
-        s.setValue('roughnessColorSpace', self.roughness_settings_widget.get_color_space())
+        for plugin in RenderPlugins:
+            plugin_name, plugin = plugin.value
 
-        s.setValue('metalnessEnabled', self.metalness_settings_widget.is_enabled())
-        s.setValue('metalnessSuffix', self.metalness_settings_widget.get_text())
-        s.setValue('metalnessColorSpace', self.metalness_settings_widget.get_color_space())
+            if plugin in plugins_loaded:
+                self.render_engine_combo_box.addItem(plugin_name)
 
-        s.setValue('normalEnabled', self.normal_settings_widget.is_enabled())
-        s.setValue('normalSuffix', self.normal_settings_widget.get_text())
-        s.setValue('normalColorSpace', self.normal_settings_widget.get_color_space())
+        if current_render_engine:
+            self.render_engine_combo_box.setCurrentText(current_render_engine)
 
-        s.setValue('heightEnabled', self.height_settings_widget.is_enabled())
-        s.setValue('heightSuffix', self.height_settings_widget.get_text())
-        s.setValue('heightColorSpace', self.height_settings_widget.get_color_space())
-
-        s.setValue('emissiveEnabled', self.emissive_settings_widget.is_enabled())
-        s.setValue('emissiveSuffix', self.emissive_settings_widget.get_text())
-        s.setValue('emissiveColorSpace', self.emissive_settings_widget.get_color_space())
-
-        s.setValue('opacityEnabled', self.opacity_settings_widget.is_enabled())
-        s.setValue('opacitySuffix', self.opacity_settings_widget.get_text())
-        s.setValue('opacityColorSpace', self.opacity_settings_widget.get_color_space())
-
-        s.setValue('uvTilingMode', self.uv_tiling_mode_combo_box.currentText())
-
-        s.setValue('useTriplanar', self.use_triplanar_check_box.isChecked())
-
-        s.endGroup()
+        logger.debug(args)
 
     def load_settings(self, settings_path: str = '') -> None:
         s = QtCore.QSettings(settings_path, QtCore.QSettings.IniFormat)
@@ -197,9 +177,44 @@ class TextureConnectorSettingsWidget(QtWidgets.QWidget):
 
         s.endGroup()
 
-    def _create_call_backs(self) -> None:
-        om.MSceneMessage.addStringArrayCallback(om.MSceneMessage.kAfterPluginLoad, self._set_render_engines)
-        om.MSceneMessage.addStringArrayCallback(om.MSceneMessage.kAfterPluginUnload, self._set_render_engines)
+    def save_settings(self) -> None:
+        s = QtCore.QSettings(self.settings_path, QtCore.QSettings.IniFormat)
+
+        s.beginGroup('settings')
+
+        s.setValue('baseColorEnabled', self.base_color_settings_widget.is_enabled())
+        s.setValue('baseColorSuffix', self.base_color_settings_widget.get_text())
+        s.setValue('baseColorColorSpace', self.base_color_settings_widget.get_color_space())
+
+        s.setValue('roughnessEnabled', self.roughness_settings_widget.is_enabled())
+        s.setValue('roughnessSuffix', self.roughness_settings_widget.get_text())
+        s.setValue('roughnessColorSpace', self.roughness_settings_widget.get_color_space())
+
+        s.setValue('metalnessEnabled', self.metalness_settings_widget.is_enabled())
+        s.setValue('metalnessSuffix', self.metalness_settings_widget.get_text())
+        s.setValue('metalnessColorSpace', self.metalness_settings_widget.get_color_space())
+
+        s.setValue('normalEnabled', self.normal_settings_widget.is_enabled())
+        s.setValue('normalSuffix', self.normal_settings_widget.get_text())
+        s.setValue('normalColorSpace', self.normal_settings_widget.get_color_space())
+
+        s.setValue('heightEnabled', self.height_settings_widget.is_enabled())
+        s.setValue('heightSuffix', self.height_settings_widget.get_text())
+        s.setValue('heightColorSpace', self.height_settings_widget.get_color_space())
+
+        s.setValue('emissiveEnabled', self.emissive_settings_widget.is_enabled())
+        s.setValue('emissiveSuffix', self.emissive_settings_widget.get_text())
+        s.setValue('emissiveColorSpace', self.emissive_settings_widget.get_color_space())
+
+        s.setValue('opacityEnabled', self.opacity_settings_widget.is_enabled())
+        s.setValue('opacitySuffix', self.opacity_settings_widget.get_text())
+        s.setValue('opacityColorSpace', self.opacity_settings_widget.get_color_space())
+
+        s.setValue('uvTilingMode', self.uv_tiling_mode_combo_box.currentText())
+
+        s.setValue('useTriplanar', self.use_triplanar_check_box.isChecked())
+
+        s.endGroup()
 
     def get_render_engine(self) -> str:
         return self.render_engine_combo_box.currentText()
@@ -227,14 +242,6 @@ class TextureConnectorSettingsWidget(QtWidgets.QWidget):
 
     def is_use_triplanar_checked(self) -> bool:
         return self.use_triplanar_check_box.isChecked()
-
-    def _get_settings_path(self) -> None:
-        user_pref_dir = cmds.internalVar(userPrefDir=True)
-
-        self.settings_path = os.path.join(
-            user_pref_dir,
-            TextureConnectorSettingsWidget.NAME,
-            f'{TextureConnectorSettingsWidget.NAME}.ini')
 
     def get_texture_maps_color_space(self) -> tuple[tuple[str, str], ...]:
         texture_maps_color_space = (
@@ -277,20 +284,3 @@ class TextureConnectorSettingsWidget(QtWidgets.QWidget):
 
     def get_uv_tiling_mode(self) -> str:
         return self.uv_tiling_mode_combo_box.currentText()
-
-    def _set_render_engines(self, *args) -> None:
-        plugins_loaded = cmds.pluginInfo(listPlugins=True, query=True)
-
-        current_render_engine = self.render_engine_combo_box.currentText()
-        self.render_engine_combo_box.clear()
-
-        for plugin in RenderPlugins:
-            plugin_name, plugin = plugin.value
-
-            if plugin in plugins_loaded:
-                self.render_engine_combo_box.addItem(plugin_name)
-
-        if current_render_engine:
-            self.render_engine_combo_box.setCurrentText(current_render_engine)
-
-        logger.debug(args)
