@@ -2,7 +2,7 @@
 ========================================================================================================================
 Name: material_settings_list_widget.py
 Author: Mauricio Gonzalez Soto
-Updated Date: 12-12-2024
+Updated Date: 12-15-2024
 
 Copyright (C) 2024 Mauricio Gonzalez Soto. All rights reserved.
 ========================================================================================================================
@@ -33,12 +33,14 @@ class MaterialSettingsListWidget(QtWidgets.QWidget):
     def __init__(self) -> None:
         super().__init__()
 
-        self.image_extensions = tuple([color_space.value for color_space in config.ImageExtensions])
-        self.folder_path = ''
-        self.texture_maps_suffix = ()
+        self.preferences_path = utils.get_preferences_path()
 
         self.search_files_in_subdirectories = True
         self.auto_update_on_file_changes = False
+
+        self.image_extensions = tuple([color_space.value for color_space in config.ImageExtensions])
+        self.folder_path = ''
+        self.texture_maps_suffix = ()
 
         self.file_system_watcher = QtCore.QFileSystemWatcher()
 
@@ -129,18 +131,12 @@ class MaterialSettingsListWidget(QtWidgets.QWidget):
         for subfolder in subfolders:
             self._add_directory_and_subdirectories(q_dir.filePath(subfolder))
 
-    def _clear_material_settings_widgets(self) -> None:
-        for material_settings_widget in self.get_material_settings_widgets():
-            material_settings_widget.deleteLater()
-
     def _load_preferences(self) -> None:
-        preferences_path = utils.get_preferences_path()
-
-        s = QtCore.QSettings(preferences_path, QtCore.QSettings.IniFormat)
+        s = QtCore.QSettings(self.preferences_path, QtCore.QSettings.IniFormat)
 
         s.beginGroup('preferences')
         self.search_files_in_subdirectories = s.value('searchFilesInSubdirectories', True, bool)
-        self.auto_update_on_file_changes = s.value('autoUpdateOnFileChanges', False, bool)
+        self.auto_update_on_file_changes = s.value('autoUpdateMaterialsOnFolderChanges', False, bool)
         s.endGroup()
 
     def _get_material_texture_paths(self, ) -> dict[str, list[tuple[str, str]]]:
@@ -180,9 +176,13 @@ class MaterialSettingsListWidget(QtWidgets.QWidget):
         else:
             return ''
 
+    def clear_material_settings_widgets(self) -> None:
+        for material_settings_widget in self.get_material_settings_widgets():
+            material_settings_widget.deleteLater()
+
     def create_material_settings_widgets(self) -> None:
         self._load_preferences()
-        self._clear_material_settings_widgets()
+        self.clear_material_settings_widgets()
 
         material_texture_paths = self._get_material_texture_paths()
 

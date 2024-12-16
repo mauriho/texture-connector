@@ -2,7 +2,7 @@
 ========================================================================================================================
 Name: preferences_ui.py
 Author: Mauricio Gonzalez Soto
-Updated Date: 12-12-2024
+Updated Date: 12-15-2024
 
 Copyright (C) 2024 Mauricio Gonzalez Soto. All rights reserved.
 ========================================================================================================================
@@ -44,8 +44,15 @@ class PreferencesUI(QtWidgets.QDialog):
         self._load_preferences()
 
     def _create_widgets(self) -> None:
-        self.search_files_in_subdirectories_check_box = QtWidgets.QCheckBox('Search Files in Subdirectories')
-        self.auto_update_on_file_changes_check_box = QtWidgets.QCheckBox('Auto Update on File Changes')
+        self.search_files_in_subdirectories_check_box = QtWidgets.QCheckBox(
+            'Search files in subdirectories'
+        )
+        self.auto_update_materials_on_folder_changes_check_box = QtWidgets.QCheckBox(
+            'Auto-update materials on folder changes'
+        )
+        self.auto_set_project_source_images_folder_check_box = QtWidgets.QCheckBox(
+            'Auto-set project sourceimages folder'
+        )
 
         self.save_push_button = QtWidgets.QPushButton('Save')
 
@@ -54,15 +61,16 @@ class PreferencesUI(QtWidgets.QDialog):
     def _create_layouts(self) -> None:
         main_layout = QtWidgets.QVBoxLayout(self)
         main_layout.setAlignment(QtCore.Qt.AlignTop)
-        main_layout.setContentsMargins(QtCore.QMargins())
+        main_layout.setContentsMargins(QtCore.QMargins(6, 6, 6, 6))
         main_layout.setSpacing(3)
 
         group_box = QtWidgets.QGroupBox()
         main_layout.addWidget(group_box)
 
         form_layout = QtWidgets.QFormLayout()
+        form_layout.addWidget(self.auto_update_materials_on_folder_changes_check_box)
+        form_layout.addWidget(self.auto_set_project_source_images_folder_check_box)
         form_layout.addWidget(self.search_files_in_subdirectories_check_box)
-        form_layout.addWidget(self.auto_update_on_file_changes_check_box)
         form_layout.setContentsMargins(QtCore.QMargins(3, 3, 3, 3))
         form_layout.setSpacing(3)
         group_box.setLayout(form_layout)
@@ -87,14 +95,36 @@ class PreferencesUI(QtWidgets.QDialog):
         s = QtCore.QSettings(self.preferences_path, QtCore.QSettings.IniFormat)
 
         s.beginGroup('preferences')
-        self.search_files_in_subdirectories_check_box.setChecked(s.value('searchFilesInSubdirectories', True, bool))
-        self.auto_update_on_file_changes_check_box.setChecked(s.value('autoUpdateOnFileChanges', False, bool))
+
+        self.search_files_in_subdirectories_check_box.setChecked(
+            bool(s.value('searchFilesInSubdirectories', True, bool))
+        )
+
+        self.auto_update_materials_on_folder_changes_check_box.setChecked(
+            bool(s.value('autoUpdateMaterialsOnFolderChanges', False, bool))
+        )
+        self.auto_set_project_source_images_folder_check_box.setChecked(
+            bool(s.value('autoSetProjectSourceImagesFolder', False, bool))
+        )
+
         s.endGroup()
 
     def _save_preferences(self) -> None:
         s = QtCore.QSettings(self.preferences_path, QtCore.QSettings.IniFormat)
 
         s.beginGroup('preferences')
-        s.setValue('searchFilesInSubdirectories', self.search_files_in_subdirectories_check_box.isChecked())
-        s.setValue('autoUpdateOnFileChanges', self.auto_update_on_file_changes_check_box.isChecked())
+
+        s.setValue(
+            'searchFilesInSubdirectories',
+            self.search_files_in_subdirectories_check_box.isChecked()
+        )
+        s.setValue(
+            'autoUpdateMaterialsOnFolderChanges',
+            self.auto_update_materials_on_folder_changes_check_box.isChecked()
+        )
+        s.setValue(
+            'autoSetProjectSourceImagesFolder',
+            self.auto_set_project_source_images_folder_check_box.isChecked()
+        )
+
         s.endGroup()
