@@ -1,12 +1,13 @@
 """
-========================================================================================================================
+========================================================================================
 Name: preferences_ui.py
 Author: Mauricio Gonzalez Soto
 Updated Date: 12-15-2024
 
 Copyright (C) 2024 Mauricio Gonzalez Soto. All rights reserved.
-========================================================================================================================
+========================================================================================
 """
+
 try:
     from shiboken6 import wrapInstance
     from PySide6 import QtWidgets
@@ -23,8 +24,8 @@ import texture_connector.utils as utils
 
 
 class PreferencesUI(QtWidgets.QDialog):
-    WINDOW_NAME = 'textureConnectorPreferences'
-    WINDOW_TITLE = 'Preferences'
+    WINDOW_NAME = "textureConnectorPreferences"
+    WINDOW_TITLE = "Preferences"
 
     save_clicked = QtCore.Signal()
 
@@ -45,23 +46,23 @@ class PreferencesUI(QtWidgets.QDialog):
 
     def _create_widgets(self) -> None:
         self.search_files_in_subdirectories_check_box = QtWidgets.QCheckBox(
-            'Search files in subdirectories'
+            "Search files in subdirectories"
         )
         self.auto_update_materials_on_folder_changes_check_box = QtWidgets.QCheckBox(
-            'Auto-update materials on folder changes'
+            "Auto-update materials on folder changes"
         )
         self.auto_set_project_source_images_folder_check_box = QtWidgets.QCheckBox(
-            'Auto-set project sourceimages folder'
+            "Auto-set project sourceimages folder"
         )
 
-        self.save_push_button = QtWidgets.QPushButton('Save')
+        self.save_push_button = QtWidgets.QPushButton("Save")
 
-        self.cancel_push_button = QtWidgets.QPushButton('Cancel')
+        self.cancel_push_button = QtWidgets.QPushButton("Cancel")
 
     def _create_layouts(self) -> None:
         main_layout = QtWidgets.QVBoxLayout(self)
         main_layout.setAlignment(QtCore.Qt.AlignTop)
-        main_layout.setContentsMargins(QtCore.QMargins(6, 6, 6, 6))
+        main_layout.setContentsMargins(6, 6, 6, 6)
         main_layout.setSpacing(3)
 
         group_box = QtWidgets.QGroupBox()
@@ -71,7 +72,7 @@ class PreferencesUI(QtWidgets.QDialog):
         form_layout.addWidget(self.auto_update_materials_on_folder_changes_check_box)
         form_layout.addWidget(self.auto_set_project_source_images_folder_check_box)
         form_layout.addWidget(self.search_files_in_subdirectories_check_box)
-        form_layout.setContentsMargins(QtCore.QMargins(3, 3, 3, 3))
+        form_layout.setContentsMargins(3, 3, 3, 3)
         form_layout.setSpacing(3)
         group_box.setLayout(form_layout)
 
@@ -94,17 +95,17 @@ class PreferencesUI(QtWidgets.QDialog):
     def _load_preferences(self) -> None:
         s = QtCore.QSettings(self.preferences_path, QtCore.QSettings.IniFormat)
 
-        s.beginGroup('preferences')
+        s.beginGroup("preferences")
 
         self.search_files_in_subdirectories_check_box.setChecked(
-            bool(s.value('searchFilesInSubdirectories', True, bool))
+            bool(s.value("searchFilesInSubdirectories", True, bool))
         )
 
         self.auto_update_materials_on_folder_changes_check_box.setChecked(
-            bool(s.value('autoUpdateMaterialsOnFolderChanges', False, bool))
+            bool(s.value("autoUpdateMaterialsOnFolderChanges", False, bool))
         )
         self.auto_set_project_source_images_folder_check_box.setChecked(
-            bool(s.value('autoSetProjectSourceImagesFolder', False, bool))
+            bool(s.value("autoSetProjectSourceImagesFolder", False, bool))
         )
 
         s.endGroup()
@@ -112,19 +113,19 @@ class PreferencesUI(QtWidgets.QDialog):
     def _save_preferences(self) -> None:
         s = QtCore.QSettings(self.preferences_path, QtCore.QSettings.IniFormat)
 
-        s.beginGroup('preferences')
+        s.beginGroup("preferences")
 
         s.setValue(
-            'searchFilesInSubdirectories',
-            self.search_files_in_subdirectories_check_box.isChecked()
+            "searchFilesInSubdirectories",
+            self.search_files_in_subdirectories_check_box.isChecked(),
         )
         s.setValue(
-            'autoUpdateMaterialsOnFolderChanges',
-            self.auto_update_materials_on_folder_changes_check_box.isChecked()
+            "autoUpdateMaterialsOnFolderChanges",
+            self.auto_update_materials_on_folder_changes_check_box.isChecked(),
         )
         s.setValue(
-            'autoSetProjectSourceImagesFolder',
-            self.auto_set_project_source_images_folder_check_box.isChecked()
+            "autoSetProjectSourceImagesFolder",
+            self.auto_set_project_source_images_folder_check_box.isChecked(),
         )
 
         s.endGroup()

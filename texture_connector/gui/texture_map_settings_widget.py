@@ -1,12 +1,13 @@
 """
-========================================================================================================================
+========================================================================================
 Name: texture_map_settings_widget.py
 Author: Mauricio Gonzalez Soto
-Updated Date: 12-08-2024
+Updated Date: 12-15-2024
 
 Copyright (C) 2024 Mauricio Gonzalez Soto. All rights reserved.
-========================================================================================================================
+========================================================================================
 """
+
 try:
     from PySide6 import QtWidgets
     from PySide6 import QtCore
@@ -25,7 +26,7 @@ class TextureMapSettingsWidget(QtWidgets.QWidget):
         super().__init__()
 
         self.color_spaces = [color_space.value for color_space in ColorSpaces]
-        self.path = ''
+        self.path = ""
 
         self._create_widgets()
         self._create_layouts()
@@ -47,27 +48,31 @@ class TextureMapSettingsWidget(QtWidgets.QWidget):
         main_layout = QtWidgets.QHBoxLayout(self)
         main_layout.addWidget(self.enable_check_box)
         main_layout.setAlignment(QtCore.Qt.AlignTop)
-        main_layout.setContentsMargins(QtCore.QMargins())
+        main_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.setSpacing(6)
 
         self.frame = QtWidgets.QFrame()
         self.frame.setEnabled(False)
         self.frame.setFrameShadow(QtWidgets.QFrame.Plain)
         self.frame.setFrameShape(QtWidgets.QFrame.StyledPanel)
-        self.frame.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Maximum)
+        self.frame.setSizePolicy(
+            QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Maximum
+        )
         main_layout.addWidget(self.frame)
 
         layout = QtWidgets.QHBoxLayout()
         layout.addWidget(self.title_label)
         layout.addWidget(self.text_line_edit)
         layout.addWidget(self.color_spaces_combo_box)
-        layout.setContentsMargins(QtCore.QMargins(3, 3, 3, 3))
+        layout.setContentsMargins(3, 3, 3, 3)
         layout.setSpacing(3)
         self.frame.setLayout(layout)
 
     def _create_connections(self) -> None:
         self.enable_check_box.toggled.connect(self._enabled_toggled_check_box)
-        self.color_spaces_combo_box.currentTextChanged.connect(self._color_spaces_current_text_changed_combo_box)
+        self.color_spaces_combo_box.currentTextChanged.connect(
+            self._color_spaces_current_text_changed_combo_box
+        )
 
     def _enabled_toggled_check_box(self, checked: bool) -> None:
         self.frame.setEnabled(checked)
@@ -103,7 +108,7 @@ class TextureMapSettingsWidget(QtWidgets.QWidget):
         self.text_line_edit.setReadOnly(True)
 
     def set_text(self, text: str) -> None:
-        text = text.replace('\\', '/')
+        text = text.replace("\\", "/")
         self.text_line_edit.setText(text)
 
     def set_title(self, title: str) -> None:

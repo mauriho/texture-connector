@@ -1,12 +1,13 @@
 """
-========================================================================================================================
+========================================================================================
 Name: material_texture_map_settings_widget.py
 Author: Mauricio Gonzalez Soto
-Updated Date: 12-11-2024
+Updated Date: 12-15-2024
 
 Copyright (C) 2024 Mauricio Gonzalez Soto. All rights reserved.
-========================================================================================================================
+========================================================================================
 """
+
 try:
     from PySide6 import QtWidgets
     from PySide6 import QtCore
@@ -28,36 +29,36 @@ class MaterialTextureMapSettingsWidget(QtWidgets.QWidget):
     def _create_widgets(self) -> None:
         self.base_color_texture_map_settings_widget = TextureMapSettingsWidget()
         self.base_color_texture_map_settings_widget.set_enabled(True)
-        self.base_color_texture_map_settings_widget.set_title('Base Color: ')
+        self.base_color_texture_map_settings_widget.set_title("Base Color: ")
 
         self.roughness_texture_map_settings_widget = TextureMapSettingsWidget()
         self.roughness_texture_map_settings_widget.set_enabled(True)
-        self.roughness_texture_map_settings_widget.set_title('Roughness: ')
+        self.roughness_texture_map_settings_widget.set_title("Roughness: ")
 
         self.metalness_texture_map_settings_widget = TextureMapSettingsWidget()
         self.metalness_texture_map_settings_widget.set_enabled(True)
-        self.metalness_texture_map_settings_widget.set_title('Metalness: ')
+        self.metalness_texture_map_settings_widget.set_title("Metalness: ")
 
         self.normal_texture_map_settings_widget = TextureMapSettingsWidget()
         self.normal_texture_map_settings_widget.set_enabled(True)
-        self.normal_texture_map_settings_widget.set_title('Normal: ')
+        self.normal_texture_map_settings_widget.set_title("Normal: ")
 
         self.height_texture_map_settings_widget = TextureMapSettingsWidget()
         self.height_texture_map_settings_widget.set_enabled(True)
-        self.height_texture_map_settings_widget.set_title('Height: ')
+        self.height_texture_map_settings_widget.set_title("Height: ")
 
         self.emissive_texture_map_settings_widget = TextureMapSettingsWidget()
         self.emissive_texture_map_settings_widget.set_enabled(True)
-        self.emissive_texture_map_settings_widget.set_title('Emissive: ')
+        self.emissive_texture_map_settings_widget.set_title("Emissive: ")
 
         self.opacity_texture_map_settings_widget = TextureMapSettingsWidget()
         self.opacity_texture_map_settings_widget.set_enabled(True)
-        self.opacity_texture_map_settings_widget.set_title('Opacity: ')
+        self.opacity_texture_map_settings_widget.set_title("Opacity: ")
 
     def _create_layouts(self) -> None:
         main_layout = QtWidgets.QVBoxLayout(self)
         main_layout.setAlignment(QtCore.Qt.AlignTop)
-        main_layout.setContentsMargins(QtCore.QMargins())
+        main_layout.setContentsMargins(0, 0, 0, 0)
 
         group_box = QtWidgets.QGroupBox()
         main_layout.addWidget(group_box)
@@ -70,7 +71,7 @@ class MaterialTextureMapSettingsWidget(QtWidgets.QWidget):
         layout.addWidget(self.height_texture_map_settings_widget)
         layout.addWidget(self.emissive_texture_map_settings_widget)
         layout.addWidget(self.opacity_texture_map_settings_widget)
-        layout.setContentsMargins(QtCore.QMargins(3, 3, 3, 3))
+        layout.setContentsMargins(3, 3, 3, 3)
         layout.setSpacing(3)
         group_box.setLayout(layout)
 
