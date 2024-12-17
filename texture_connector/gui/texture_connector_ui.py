@@ -41,6 +41,8 @@ class TextureConnectorUI(QtWidgets.QDialog):
     WINDOW_NAME = "textureConnector"
     WINDOW_TITLE = "Texture Connector"
 
+    PREFERENCES_PATH = utils.get_preferences_path()
+
     dialog_instance = None
 
     @classmethod
@@ -66,9 +68,7 @@ class TextureConnectorUI(QtWidgets.QDialog):
 
         self.geometry = None
 
-        self.preferences_path = utils.get_preferences_path()
         self.preferences_ui = PreferencesUI(self)
-
         self.auto_set_project_source_images_folder = False
 
         self.resize(800, 600)
@@ -244,7 +244,9 @@ class TextureConnectorUI(QtWidgets.QDialog):
         webbrowser.open("https://github.com/mauriciogonzalezsoto/texture-connector")
 
     def _load_preferences(self) -> None:
-        s = QtCore.QSettings(self.preferences_path, QtCore.QSettings.IniFormat)
+        s = QtCore.QSettings(
+            TextureConnectorUI.PREFERENCES_PATH, QtCore.QSettings.IniFormat
+        )
 
         s.beginGroup("preferences")
         self.auto_set_project_source_images_folder = s.value(

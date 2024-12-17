@@ -2,7 +2,7 @@
 ========================================================================================
 Name: texture_map_settings_widget.py
 Author: Mauricio Gonzalez Soto
-Updated Date: 12-15-2024
+Updated Date: 12-17-2024
 
 Copyright (C) 2024 Mauricio Gonzalez Soto. All rights reserved.
 ========================================================================================
@@ -19,13 +19,14 @@ from texture_connector.config import ColorSpaces
 
 
 class TextureMapSettingsWidget(QtWidgets.QWidget):
+    COLOR_SPACES = [color_space.value for color_space in ColorSpaces]
+
     current_color_space_changed = QtCore.Signal(str)
     enable_toggled = QtCore.Signal(bool)
 
     def __init__(self) -> None:
         super().__init__()
 
-        self.color_spaces = [color_space.value for color_space in ColorSpaces]
         self.path = ""
 
         self._create_widgets()
@@ -42,7 +43,7 @@ class TextureMapSettingsWidget(QtWidgets.QWidget):
         self.text_line_edit = QtWidgets.QLineEdit()
 
         self.color_spaces_combo_box = QtWidgets.QComboBox()
-        self.color_spaces_combo_box.addItems(self.color_spaces)
+        self.color_spaces_combo_box.addItems(TextureMapSettingsWidget.COLOR_SPACES)
 
     def _create_layouts(self) -> None:
         main_layout = QtWidgets.QHBoxLayout(self)

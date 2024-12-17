@@ -35,13 +35,12 @@ logger = logging.getLogger(__name__)
 
 
 class TextureConnectorSettingsWidget(QtWidgets.QWidget):
+    PREFERENCES_PATH = utils.get_preferences_path()
 
     def __init__(self) -> None:
         super().__init__()
 
         self.call_backs = []
-
-        self.settings_path = utils.get_settings_path()
 
         self.material_texture_map_settings_widget = None
         self.base_color_settings_widget = None
@@ -51,13 +50,12 @@ class TextureConnectorSettingsWidget(QtWidgets.QWidget):
         self.height_settings_widget = None
         self.emissive_settings_widget = None
         self.opacity_settings_widget = None
-
         self.use_triplanar_check_box = None
 
         self._create_widgets()
         self._create_layouts()
         self._set_render_engines()
-        self.load_settings(self.settings_path)
+        self.load_settings(TextureConnectorSettingsWidget.PREFERENCES_PATH)
 
     def _create_widgets(self) -> None:
         self.render_engine_combo_box = QtWidgets.QComboBox()
@@ -266,7 +264,9 @@ class TextureConnectorSettingsWidget(QtWidgets.QWidget):
         s.endGroup()
 
     def save_settings(self) -> None:
-        s = QtCore.QSettings(self.settings_path, QtCore.QSettings.IniFormat)
+        s = QtCore.QSettings(
+            TextureConnectorSettingsWidget.PREFERENCES_PATH, QtCore.QSettings.IniFormat
+        )
 
         s.beginGroup("settings")
 

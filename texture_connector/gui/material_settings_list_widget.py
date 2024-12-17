@@ -38,20 +38,21 @@ logger = logging.getLogger(__name__)
 
 
 class MaterialSettingsListWidget(QtWidgets.QWidget):
+    PREFERENCES_PATH = utils.get_preferences_path()
+
+    IMAGE_EXTENSIONS = [
+        image_extension.value for image_extension in config.ImageExtensions
+    ]
+
     directory_changed = QtCore.Signal()
     update_clicked = QtCore.Signal()
 
     def __init__(self) -> None:
         super().__init__()
 
-        self.preferences_path = utils.get_preferences_path()
         self.search_files_in_subdirectories = True
         self.auto_update_on_file_changes = False
 
-        self.image_extensions = tuple(
-            [image_extension.value for image_extension in config.ImageExtensions]
-        )
-        
         self.folder_path = ""
         self.texture_maps_suffix = ()
 
@@ -126,7 +127,8 @@ class MaterialSettingsListWidget(QtWidgets.QWidget):
 
         logger.debug("File system watcher called.")
 
-    def _search_material_text_changed_line_edit(self, text: str) -> None:
+    def _search_material_text_changed_line_edit(self) -> None:
+        text = self.search_material_line_edit.text()
         text_lower = text.lower()
 
         for material_settings_widget in self.get_material_settings_widgets():
@@ -156,7 +158,9 @@ class MaterialSettingsListWidget(QtWidgets.QWidget):
             self._add_directory_and_subdirectories(q_dir.filePath(subfolder))
 
     def _load_preferences(self) -> None:
-        s = QtCore.QSettings(self.preferences_path, QtCore.QSettings.IniFormat)
+        s = QtCore.QSettings(
+            MaterialSettingsListWidget.PREFERENCES_PATH, QtCore.QSettings.IniFormat
+        )
 
         s.beginGroup("preferences")
 
@@ -186,7 +190,7 @@ class MaterialSettingsListWidget(QtWidgets.QWidget):
             path = pathlib.Path(file_path)
             path_suffix = path.suffix
 
-            if path_suffix in self.image_extensions:
+            if path_suffix in MaterialSettingsListWidget.IMAGE_EXTENSIONS:
                 for texture_map_name, texture_map_suffix in self.texture_maps_suffix:
                     if texture_map_suffix:
                         material_name = self._get_material_name_from_texture_map_path(
@@ -204,7 +208,7 @@ class MaterialSettingsListWidget(QtWidgets.QWidget):
     def _get_material_name_from_texture_map_path(
         path: pathlib.Path, texture_map_suffix: str
     ) -> str:
-        material_name = ''
+        material_name = ""
 
         pattern = rf"(.+?)(?=_{texture_map_suffix})(?=_.*$|$)"
         match = re.search(pattern, path.stem, re.IGNORECASE)
@@ -226,8 +230,10 @@ class MaterialSettingsListWidget(QtWidgets.QWidget):
 
             file_system_watcher_directories = self.file_system_watcher.directories()
 
-            logger.debug(f"File system watcher directories after added: "
-                         f"{file_system_watcher_directories}")
+            logger.debug(
+                f"File system watcher directories after added: "
+                f"{file_system_watcher_directories}"
+            )
 
     def clear_file_system_watcher(self) -> None:
         file_system_watcher_directories = self.file_system_watcher.directories()
@@ -237,8 +243,10 @@ class MaterialSettingsListWidget(QtWidgets.QWidget):
 
         file_system_watcher_directories = self.file_system_watcher.directories()
 
-        logger.debug(f"File system watcher directories after removed: "
-                     f"{file_system_watcher_directories}")
+        logger.debug(
+            f"File system watcher directories after removed: "
+            f"{file_system_watcher_directories}"
+        )
 
     def clear_material_settings_widgets(self) -> None:
         for material_settings_widget in self.get_material_settings_widgets():
@@ -295,9 +303,7 @@ class MaterialSettingsListWidget(QtWidgets.QWidget):
                     opacity_widget.set_path(texture_path)
                     opacity_widget.set_text(texture_path_short_name)
 
-        self._search_material_text_changed_line_edit(
-            self.search_material_line_edit.text()
-        )
+        self._search_material_text_changed_line_edit()
 
     def get_material_settings_widgets(self) -> list[MaterialSettingsWidget]:
         material_settings_widgets = []

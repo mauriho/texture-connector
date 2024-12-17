@@ -2,7 +2,7 @@
 ========================================================================================
 Name: preferences_ui.py
 Author: Mauricio Gonzalez Soto
-Updated Date: 12-15-2024
+Updated Date: 12-17-2024
 
 Copyright (C) 2024 Mauricio Gonzalez Soto. All rights reserved.
 ========================================================================================
@@ -27,12 +27,12 @@ class PreferencesUI(QtWidgets.QDialog):
     WINDOW_NAME = "textureConnectorPreferences"
     WINDOW_TITLE = "Preferences"
 
+    PREFERENCES_PATH = utils.get_preferences_path()
+
     save_clicked = QtCore.Signal()
 
     def __init__(self, parent: QtWidgets.QWidget) -> None:
         super().__init__(parent)
-
-        self.preferences_path = utils.get_preferences_path()
 
         self.resize(400, 200)
         self.setObjectName(PreferencesUI.WINDOW_NAME)
@@ -93,7 +93,7 @@ class PreferencesUI(QtWidgets.QDialog):
         self.save_clicked.emit()
 
     def _load_preferences(self) -> None:
-        s = QtCore.QSettings(self.preferences_path, QtCore.QSettings.IniFormat)
+        s = QtCore.QSettings(PreferencesUI.PREFERENCES_PATH, QtCore.QSettings.IniFormat)
 
         s.beginGroup("preferences")
 
@@ -111,7 +111,7 @@ class PreferencesUI(QtWidgets.QDialog):
         s.endGroup()
 
     def _save_preferences(self) -> None:
-        s = QtCore.QSettings(self.preferences_path, QtCore.QSettings.IniFormat)
+        s = QtCore.QSettings(PreferencesUI.PREFERENCES_PATH, QtCore.QSettings.IniFormat)
 
         s.beginGroup("preferences")
 
