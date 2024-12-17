@@ -2,7 +2,7 @@
 ========================================================================================
 Name: material_settings_list_widget.py
 Author: Mauricio Gonzalez Soto
-Updated Date: 12-15-2024
+Updated Date: 12-16-2024
 
 Copyright (C) 2024 Mauricio Gonzalez Soto. All rights reserved.
 ========================================================================================
@@ -13,9 +13,11 @@ from __future__ import annotations
 try:
     from PySide6 import QtWidgets
     from PySide6 import QtCore
+    from PySide6 import QtGui
 except ImportError:
     from PySide2 import QtWidgets
     from PySide2 import QtCore
+    from PySide2 import QtGui
 
 from collections import defaultdict
 import pathlib
@@ -40,7 +42,7 @@ class MaterialSettingsListWidget(QtWidgets.QWidget):
         self.auto_update_on_file_changes = False
 
         self.image_extensions = tuple(
-            [color_space.value for color_space in config.ImageExtensions]
+            [image_extension.value for image_extension in config.ImageExtensions]
         )
         self.folder_path = ""
         self.texture_maps_suffix = ()
@@ -74,10 +76,10 @@ class MaterialSettingsListWidget(QtWidgets.QWidget):
         main_layout.addWidget(scroll_area)
 
         self.material_list_items_widget = QtWidgets.QWidget()
-        self.material_list_items_widget.setProperty("localStyle", True)
-        self.material_list_items_widget.setStyleSheet(
-            "QWidget[localStyle='true'] {background-color: rgb(40, 40, 40);}"
-        )
+        self.material_list_items_widget.setAutoFillBackground(True)
+        palette = self.material_list_items_widget.palette()
+        palette.setColor(QtGui.QPalette.Window, QtGui.QColor(40, 40, 40))
+        self.material_list_items_widget.setPalette(palette)
         scroll_area.setWidget(self.material_list_items_widget)
 
         self.material_list_items_v_box_layout = QtWidgets.QVBoxLayout()
@@ -195,13 +197,15 @@ class MaterialSettingsListWidget(QtWidgets.QWidget):
     def _get_material_name_from_texture_map_path(
         path: pathlib.Path, texture_map_suffix: str
     ) -> str:
+        material_name = ''
+
         pattern = rf"(.+?)(?=_{texture_map_suffix})(?=_.*$|$)"
         match = re.search(pattern, path.stem, re.IGNORECASE)
 
         if match:
-            return match.group(1)
-        else:
-            return ""
+            material_name = match.group(1)
+
+        return material_name
 
     def clear_material_settings_widgets(self) -> None:
         for material_settings_widget in self.get_material_settings_widgets():
