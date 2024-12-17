@@ -2,7 +2,7 @@
 ========================================================================================
 Name: create_material_network.py
 Author: Mauricio Gonzalez Soto
-Updated Date: 12-15-2024
+Updated Date: 12-16-2024
 
 Copyright (C) 2024 Mauricio Gonzalez Soto. All rights reserved.
 ========================================================================================
@@ -10,15 +10,13 @@ Copyright (C) 2024 Mauricio Gonzalez Soto. All rights reserved.
 
 from __future__ import annotations
 
-from maya.api.OpenMaya import MGlobal
 import maya.cmds as cmds
 
 from texture_connector.config import UVTilingModes
+import texture_connector.utils as utils
 
 
 class CreateMaterialNetwork:
-    TEXTURE_CONNECTOR = "Texture Connector"
-
     MATERIAL_NODE = None
     USE_BUMP_2D_NODE = True
 
@@ -92,9 +90,7 @@ class CreateMaterialNetwork:
         self.uv_tiling_mode = uv_tiling_mode
 
         if not self.name:
-            MGlobal.displayError(
-                f"[{CreateMaterialNetwork.TEXTURE_CONNECTOR}] No name for the material."
-            )
+            utils.display_error("No name for the material.")
             return
 
         cmds.undoInfo(chunkName="CreateMaterialNetwork", openChunk=True)
@@ -125,10 +121,7 @@ class CreateMaterialNetwork:
 
         cmds.select(clear=True)
 
-        MGlobal.displayInfo(
-            f"[{CreateMaterialNetwork.TEXTURE_CONNECTOR}] Created {self.name!r} "
-            f"material network."
-        )
+        utils.display_info(f"Created {self.name!r} material network.")
 
         cmds.undoInfo(chunkName="CreateMaterialNetwork", closeChunk=True)
 

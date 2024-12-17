@@ -2,7 +2,7 @@
 ========================================================================================
 Name: texture_connector_ui.py
 Author: Mauricio Gonzalez Soto
-Updated Date: 12-15-2024
+Updated Date: 12-16-2024
 
 Copyright (C) 2024 Mauricio Gonzalez Soto. All rights reserved.
 ========================================================================================
@@ -19,7 +19,6 @@ except ImportError:
     from PySide2 import QtCore
     from PySide2 import QtGui
 
-from maya.api.OpenMaya import MGlobal
 from maya.OpenMayaUI import MQtUtil
 from maya import cmds
 
@@ -261,7 +260,7 @@ class TextureConnectorUI(QtWidgets.QDialog):
                 self.material_settings_list_widget.set_folder_path(folder_path)
                 self._create_material_settings_widgets()
             else:
-                MGlobal.displayError(f"{folder_path!r} folder does not exist.")
+                utils.display_error(f"{folder_path!r} folder does not exist.")
         else:
             self.material_settings_list_widget.clear_material_settings_widgets()
 
@@ -366,9 +365,8 @@ class TextureConnectorUI(QtWidgets.QDialog):
                 elif render_engine == RenderPlugins.V_RAY.value[0]:
                     material_network = CreateMaterialNetworkVRay()
                 else:
-                    MGlobal.displayError(
-                        f"[{TextureConnectorUI.WINDOW_TITLE}] "
-                        f"No supported render engine loaded (Arnold, Redshift, V-Ray)."
+                    utils.display_error(
+                        "No supported render engine loaded (Arnold, Redshift, V-Ray)."
                     )
 
                     return
@@ -382,13 +380,9 @@ class TextureConnectorUI(QtWidgets.QDialog):
                     count += 1
 
         if count:
-            MGlobal.displayInfo(
-                f"[{TextureConnectorUI.WINDOW_TITLE}] {count} material(s) created."
-            )
+            utils.display_info(f"{count} material(s) created.")
         else:
-            MGlobal.displayWarning(
-                f"[{TextureConnectorUI.WINDOW_TITLE}] No material has been created."
-            )
+            utils.display_warning("No material has been created.")
 
     def _preferences_ui_save_clicked(self):
         self._folder_path_return_pressed_line_edit()
@@ -509,10 +503,7 @@ class TextureConnectorUI(QtWidgets.QDialog):
                 self.material_settings_list_widget.set_folder_path(source_images_folder)
                 self._create_material_settings_widgets()
             else:
-                MGlobal.displayWarning(
-                    f"[{TextureConnectorUI.WINDOW_TITLE}] {source_images_folder!r} "
-                    f"folder does not exist."
-                )
+                utils.display_error(f"{source_images_folder!r} folder does not exist.")
 
     def closeEvent(self, event: QtGui.QCloseEvent) -> None:
         if isinstance(self, TextureConnectorUI):
