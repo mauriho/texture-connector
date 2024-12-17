@@ -2,7 +2,7 @@
 ========================================================================================
 Name: texture_connector_ui.py
 Author: Mauricio Gonzalez Soto
-Updated Date: 12-16-2024
+Updated Date: 12-17-2024
 
 Copyright (C) 2024 Mauricio Gonzalez Soto. All rights reserved.
 ========================================================================================
@@ -511,11 +511,17 @@ class TextureConnectorUI(QtWidgets.QDialog):
 
             self.geometry = self.saveGeometry()
 
+        self.material_settings_list_widget.clear_file_system_watcher()
+        self.texture_connector_settings_widget.delete_call_backs()
+
     def showEvent(self, event: QtGui.QShowEvent) -> None:
         super().showEvent(event)
 
         if self.geometry:
             self.restoreGeometry(self.geometry)
+
+        self.material_settings_list_widget.add_file_system_watcher_paths()
+        self.texture_connector_settings_widget.create_call_backs()
 
         self._load_preferences()
         self._set_project_source_images_folder()

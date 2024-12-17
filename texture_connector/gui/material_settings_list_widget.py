@@ -2,7 +2,7 @@
 ========================================================================================
 Name: material_settings_list_widget.py
 Author: Mauricio Gonzalez Soto
-Updated Date: 12-16-2024
+Updated Date: 12-17-2024
 
 Copyright (C) 2024 Mauricio Gonzalez Soto. All rights reserved.
 ========================================================================================
@@ -14,19 +14,27 @@ try:
     from PySide6 import QtWidgets
     from PySide6 import QtCore
     from PySide6 import QtGui
+    from shiboken6 import delete
 except ImportError:
     from PySide2 import QtWidgets
     from PySide2 import QtCore
     from PySide2 import QtGui
+    from shiboken2 import delete
 
 from collections import defaultdict
+import logging
 import pathlib
 import glob
+import os
 import re
 
 from texture_connector.gui.material_settings_widget import MaterialSettingsWidget
 import texture_connector.config as config
 import texture_connector.utils as utils
+
+
+logger = logging.getLogger(__name__)
+# logger.setLevel(logging.DEBUG)
 
 
 class MaterialSettingsListWidget(QtWidgets.QWidget):
@@ -37,13 +45,13 @@ class MaterialSettingsListWidget(QtWidgets.QWidget):
         super().__init__()
 
         self.preferences_path = utils.get_preferences_path()
-
         self.search_files_in_subdirectories = True
         self.auto_update_on_file_changes = False
 
         self.image_extensions = tuple(
             [image_extension.value for image_extension in config.ImageExtensions]
         )
+        
         self.folder_path = ""
         self.texture_maps_suffix = ()
 
@@ -82,11 +90,11 @@ class MaterialSettingsListWidget(QtWidgets.QWidget):
         self.material_list_items_widget.setPalette(palette)
         scroll_area.setWidget(self.material_list_items_widget)
 
-        self.material_list_items_v_box_layout = QtWidgets.QVBoxLayout()
-        self.material_list_items_v_box_layout.setAlignment(QtCore.Qt.AlignTop)
-        self.material_list_items_v_box_layout.setContentsMargins(3, 3, 3, 3)
-        self.material_list_items_v_box_layout.setSpacing(3)
-        self.material_list_items_widget.setLayout(self.material_list_items_v_box_layout)
+        self.material_items_list_v_box_layout = QtWidgets.QVBoxLayout()
+        self.material_items_list_v_box_layout.setAlignment(QtCore.Qt.AlignTop)
+        self.material_items_list_v_box_layout.setContentsMargins(3, 3, 3, 3)
+        self.material_items_list_v_box_layout.setSpacing(3)
+        self.material_list_items_widget.setLayout(self.material_items_list_v_box_layout)
 
         layout = QtWidgets.QHBoxLayout()
         layout.addWidget(self.unselect_all_materials_push_button)
@@ -114,10 +122,9 @@ class MaterialSettingsListWidget(QtWidgets.QWidget):
         )
 
     def _directory_changed_file_system_watcher(self) -> None:
-        self._load_preferences()
+        self.directory_changed.emit()
 
-        if self.auto_update_on_file_changes:
-            self.directory_changed.emit()
+        logger.debug("File system watcher called.")
 
     def _search_material_text_changed_line_edit(self, text: str) -> None:
         text_lower = text.lower()
@@ -207,9 +214,35 @@ class MaterialSettingsListWidget(QtWidgets.QWidget):
 
         return material_name
 
+    def add_file_system_watcher_paths(self) -> None:
+        self._load_preferences()
+
+        if self.auto_update_on_file_changes:
+            if os.path.exists(self.folder_path):
+                if self.search_files_in_subdirectories:
+                    self._add_directory_and_subdirectories(self.folder_path)
+                else:
+                    self.file_system_watcher.addPath(self.folder_path)
+
+            file_system_watcher_directories = self.file_system_watcher.directories()
+
+            logger.debug(f"File system watcher directories after added: "
+                         f"{file_system_watcher_directories}")
+
+    def clear_file_system_watcher(self) -> None:
+        file_system_watcher_directories = self.file_system_watcher.directories()
+
+        if file_system_watcher_directories:
+            self.file_system_watcher.removePaths(file_system_watcher_directories)
+
+        file_system_watcher_directories = self.file_system_watcher.directories()
+
+        logger.debug(f"File system watcher directories after removed: "
+                     f"{file_system_watcher_directories}")
+
     def clear_material_settings_widgets(self) -> None:
         for material_settings_widget in self.get_material_settings_widgets():
-            material_settings_widget.deleteLater()
+            delete(material_settings_widget)
 
     def create_material_settings_widgets(self) -> None:
         self._load_preferences()
@@ -220,7 +253,7 @@ class MaterialSettingsListWidget(QtWidgets.QWidget):
         for material_name, textures_paths in material_texture_paths.items():
             material_widget = MaterialSettingsWidget()
             material_widget.set_material_name(material_name)
-            self.material_list_items_v_box_layout.addWidget(material_widget)
+            self.material_items_list_v_box_layout.addWidget(material_widget)
 
             for texture_type, texture_path in textures_paths:
                 texture_path_short_name = utils.remove_prefix(
@@ -276,19 +309,12 @@ class MaterialSettingsListWidget(QtWidgets.QWidget):
         return material_settings_widgets
 
     def set_folder_path(self, folder_path: str) -> None:
-        self._load_preferences()
-
         self.folder_path = folder_path
 
-        file_system_watcher_directories = self.file_system_watcher.directories()
+        logger.debug(f"Folder path: {self.folder_path}")
 
-        if file_system_watcher_directories:
-            self.file_system_watcher.removePaths(file_system_watcher_directories)
-
-        if self.search_files_in_subdirectories:
-            self._add_directory_and_subdirectories(self.folder_path)
-        else:
-            self.file_system_watcher.addPath(self.folder_path)
+        self.clear_file_system_watcher()
+        self.add_file_system_watcher_paths()
 
     def set_texture_maps_suffix(
         self, texture_maps_suffix: tuple[tuple[str, str], ...]

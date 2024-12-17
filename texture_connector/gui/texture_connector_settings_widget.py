@@ -2,7 +2,7 @@
 ========================================================================================
 Name: texture_connector_settings_widget.py
 Author: Mauricio Gonzalez Soto
-Updated Date: 12-15-2024
+Updated Date: 12-17-2024
 
 Copyright (C) 2024 Mauricio Gonzalez Soto. All rights reserved.
 ========================================================================================
@@ -39,6 +39,8 @@ class TextureConnectorSettingsWidget(QtWidgets.QWidget):
     def __init__(self) -> None:
         super().__init__()
 
+        self.call_backs = []
+
         self.settings_path = utils.get_settings_path()
 
         self.material_texture_map_settings_widget = None
@@ -55,7 +57,6 @@ class TextureConnectorSettingsWidget(QtWidgets.QWidget):
         self._create_widgets()
         self._create_layouts()
         self._set_render_engines()
-        self._create_call_backs()
         self.load_settings(self.settings_path)
 
     def _create_widgets(self) -> None:
@@ -141,13 +142,34 @@ class TextureConnectorSettingsWidget(QtWidgets.QWidget):
         triplanar_form_layout.setSpacing(3)
         triplanar_group_box.setLayout(triplanar_form_layout)
 
-    def _create_call_backs(self) -> None:
-        om.MSceneMessage.addStringArrayCallback(
-            om.MSceneMessage.kAfterPluginLoad, self._set_render_engines
-        )
-        om.MSceneMessage.addStringArrayCallback(
-            om.MSceneMessage.kAfterPluginUnload, self._set_render_engines
-        )
+    def create_call_backs(self) -> None:
+        logger.debug(f"Callbacks before create: {self.call_backs}")
+
+        if not self.call_backs:
+            self.call_backs.append(
+                om.MSceneMessage.addStringArrayCallback(
+                    om.MSceneMessage.kAfterPluginLoad, self._set_render_engines
+                )
+            )
+
+            self.call_backs.append(
+                om.MSceneMessage.addStringArrayCallback(
+                    om.MSceneMessage.kAfterPluginUnload, self._set_render_engines
+                )
+            )
+
+        logger.debug(f"Callbacks after create: {self.call_backs}")
+
+    def delete_call_backs(self) -> None:
+        logger.debug(f"Callbacks before delete: {self.call_backs}")
+
+        if self.call_backs:
+            for call_back in self.call_backs:
+                om.MSceneMessage.removeCallback(call_back)
+
+            self.call_backs.clear()
+
+        logger.debug(f"Callbacks after delete: {self.call_backs}")
 
     def _set_render_engines(self, *args) -> None:
         plugins_loaded = cmds.pluginInfo(listPlugins=True, query=True)
