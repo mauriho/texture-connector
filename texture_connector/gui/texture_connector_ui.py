@@ -220,9 +220,6 @@ class TextureConnectorUI(QtWidgets.QDialog):
         self.material_settings_list_widget.directory_changed.connect(
             self._material_settings_list_directory_changed_widget
         )
-        self.material_settings_list_widget.update_clicked.connect(
-            self._material_settings_list_update_clicked_widget
-        )
 
         self.create_materials_push_button.clicked.connect(
             self._create_materials_clicked_push_button
@@ -350,9 +347,6 @@ class TextureConnectorUI(QtWidgets.QDialog):
     def _material_settings_list_directory_changed_widget(self) -> None:
         self._create_material_settings_widgets()
 
-    def _material_settings_list_update_clicked_widget(self) -> None:
-        self._create_material_settings_widgets()
-
     def _create_materials_clicked_push_button(self) -> None:
         render_engine = self.texture_connector_settings_widget.get_render_engine()
         materials = self.material_settings_list_widget.get_material_settings_widgets()
@@ -387,6 +381,10 @@ class TextureConnectorUI(QtWidgets.QDialog):
             utils.Logger.warning("No material has been created.")
 
     def _preferences_ui_save_clicked(self):
+        if not self.folder_path_line_edit.text():
+            self._load_preferences()
+            self._set_project_source_images_folder()
+
         self._folder_path_return_pressed_line_edit()
 
     def _create_material_network(

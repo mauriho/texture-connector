@@ -48,9 +48,6 @@ class PreferencesUI(QtWidgets.QDialog):
         self.search_files_in_subdirectories_check_box = QtWidgets.QCheckBox(
             "Search files in subdirectories"
         )
-        self.auto_update_materials_on_folder_changes_check_box = QtWidgets.QCheckBox(
-            "Auto-update materials on folder changes"
-        )
         self.auto_set_project_source_images_folder_check_box = QtWidgets.QCheckBox(
             "Auto-set project sourceimages folder"
         )
@@ -69,7 +66,6 @@ class PreferencesUI(QtWidgets.QDialog):
         main_layout.addWidget(group_box)
 
         form_layout = QtWidgets.QFormLayout()
-        form_layout.addWidget(self.auto_update_materials_on_folder_changes_check_box)
         form_layout.addWidget(self.auto_set_project_source_images_folder_check_box)
         form_layout.addWidget(self.search_files_in_subdirectories_check_box)
         form_layout.setContentsMargins(3, 3, 3, 3)
@@ -100,10 +96,6 @@ class PreferencesUI(QtWidgets.QDialog):
         self.search_files_in_subdirectories_check_box.setChecked(
             bool(s.value("searchFilesInSubdirectories", True, bool))
         )
-
-        self.auto_update_materials_on_folder_changes_check_box.setChecked(
-            bool(s.value("autoUpdateMaterialsOnFolderChanges", False, bool))
-        )
         self.auto_set_project_source_images_folder_check_box.setChecked(
             bool(s.value("autoSetProjectSourceImagesFolder", False, bool))
         )
@@ -118,10 +110,6 @@ class PreferencesUI(QtWidgets.QDialog):
         s.setValue(
             "searchFilesInSubdirectories",
             self.search_files_in_subdirectories_check_box.isChecked(),
-        )
-        s.setValue(
-            "autoUpdateMaterialsOnFolderChanges",
-            self.auto_update_materials_on_folder_changes_check_box.isChecked(),
         )
         s.setValue(
             "autoSetProjectSourceImagesFolder",

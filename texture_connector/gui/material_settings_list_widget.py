@@ -41,13 +41,11 @@ class MaterialSettingsListWidget(QtWidgets.QWidget):
     )
 
     directory_changed = QtCore.Signal()
-    update_clicked = QtCore.Signal()
 
     def __init__(self) -> None:
         super().__init__()
 
         self.search_files_in_subdirectories = True
-        self.auto_update_on_file_changes = False
 
         self.folder_path = ""
         self.texture_maps_suffix = ()
@@ -65,8 +63,6 @@ class MaterialSettingsListWidget(QtWidgets.QWidget):
         self.unselect_all_materials_push_button = QtWidgets.QPushButton("Unselect All")
 
         self.select_all_materials_push_button = QtWidgets.QPushButton("Select All")
-
-        self.update_materials_push_button = QtWidgets.QPushButton("Update Materials")
 
     def _create_layouts(self) -> None:
         main_layout = QtWidgets.QVBoxLayout(self)
@@ -98,7 +94,6 @@ class MaterialSettingsListWidget(QtWidgets.QWidget):
         layout.addWidget(self.select_all_materials_push_button)
 
         main_layout.addLayout(layout)
-        main_layout.addWidget(self.update_materials_push_button)
 
     def _create_connections(self) -> None:
         self.file_system_watcher.directoryChanged.connect(
@@ -113,9 +108,6 @@ class MaterialSettingsListWidget(QtWidgets.QWidget):
         )
         self.select_all_materials_push_button.clicked.connect(
             self._select_all_clicked_action
-        )
-        self.update_materials_push_button.clicked.connect(
-            self._update_materials_clicked_push_button
         )
 
     def _directory_changed_file_system_watcher(self) -> None:
@@ -141,9 +133,6 @@ class MaterialSettingsListWidget(QtWidgets.QWidget):
         for material_settings_widget in self.get_material_settings_widgets():
             material_settings_widget.set_enabled(True)
 
-    def _update_materials_clicked_push_button(self) -> None:
-        self.update_clicked.emit()
-
     def _add_directory_and_subdirectories(self, folder_path):
         self.file_system_watcher.addPath(folder_path)
 
@@ -162,9 +151,6 @@ class MaterialSettingsListWidget(QtWidgets.QWidget):
 
         self.search_files_in_subdirectories = s.value(
             "searchFilesInSubdirectories", True, bool
-        )
-        self.auto_update_on_file_changes = s.value(
-            "autoUpdateMaterialsOnFolderChanges", False, bool
         )
 
         s.endGroup()
@@ -215,21 +201,18 @@ class MaterialSettingsListWidget(QtWidgets.QWidget):
         return material_name
 
     def add_file_system_watcher_paths(self) -> None:
-        self._load_preferences()
+        if os.path.exists(self.folder_path):
+            if self.search_files_in_subdirectories:
+                self._add_directory_and_subdirectories(self.folder_path)
+            else:
+                self.file_system_watcher.addPath(self.folder_path)
 
-        if self.auto_update_on_file_changes:
-            if os.path.exists(self.folder_path):
-                if self.search_files_in_subdirectories:
-                    self._add_directory_and_subdirectories(self.folder_path)
-                else:
-                    self.file_system_watcher.addPath(self.folder_path)
+        file_system_watcher_directories = self.file_system_watcher.directories()
 
-            file_system_watcher_directories = self.file_system_watcher.directories()
-
-            utils.Logger.debug(
-                f"File system watcher directories after adding "
-                f"{file_system_watcher_directories}."
-            )
+        utils.Logger.debug(
+            f"File system watcher directories after adding "
+            f"{file_system_watcher_directories}."
+        )
 
     def clear_file_system_watcher(self) -> None:
         file_system_watcher_directories = self.file_system_watcher.directories()
