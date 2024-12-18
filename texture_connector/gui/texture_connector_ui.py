@@ -262,7 +262,7 @@ class TextureConnectorUI(QtWidgets.QDialog):
                 self.material_settings_list_widget.set_folder_path(folder_path)
                 self._create_material_settings_widgets()
             else:
-                utils.display_error(f"{folder_path!r} folder does not exist.")
+                utils.Logger.error(f"{folder_path!r} folder does not exist.")
         else:
             self.material_settings_list_widget.clear_material_settings_widgets()
 
@@ -367,7 +367,7 @@ class TextureConnectorUI(QtWidgets.QDialog):
                 elif render_engine == RenderPlugins.V_RAY.value[0]:
                     material_network = CreateMaterialNetworkVRay()
                 else:
-                    utils.display_error(
+                    utils.Logger.error(
                         "No supported render engine loaded (Arnold, Redshift, V-Ray)."
                     )
 
@@ -382,9 +382,9 @@ class TextureConnectorUI(QtWidgets.QDialog):
                     count += 1
 
         if count:
-            utils.display_info(f"{count} material(s) created.")
+            utils.Logger.info(f"{count} material(s) created.")
         else:
-            utils.display_warning("No material has been created.")
+            utils.Logger.warning("No material has been created.")
 
     def _preferences_ui_save_clicked(self):
         self._folder_path_return_pressed_line_edit()
@@ -505,7 +505,7 @@ class TextureConnectorUI(QtWidgets.QDialog):
                 self.material_settings_list_widget.set_folder_path(source_images_folder)
                 self._create_material_settings_widgets()
             else:
-                utils.display_error(f"{source_images_folder!r} folder does not exist.")
+                utils.Logger.error(f"{source_images_folder!r} folder does not exist.")
 
     def closeEvent(self, event: QtGui.QCloseEvent) -> None:
         if isinstance(self, TextureConnectorUI):

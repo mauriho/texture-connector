@@ -2,7 +2,7 @@
 ========================================================================================
 Name: create_material_network.py
 Author: Mauricio Gonzalez Soto
-Updated Date: 12-16-2024
+Updated Date: 12-17-2024
 
 Copyright (C) 2024 Mauricio Gonzalez Soto. All rights reserved.
 ========================================================================================
@@ -90,7 +90,7 @@ class CreateMaterialNetwork:
         self.uv_tiling_mode = uv_tiling_mode
 
         if not self.name:
-            utils.display_error("No name for the material.")
+            utils.Logger.error("No name for the material.")
             return
 
         cmds.undoInfo(chunkName="CreateMaterialNetwork", openChunk=True)
@@ -121,7 +121,7 @@ class CreateMaterialNetwork:
 
         cmds.select(clear=True)
 
-        utils.display_info(f"Created {self.name!r} material network.")
+        utils.Logger.info(f"Created {self.name!r} material network.")
 
         cmds.undoInfo(chunkName="CreateMaterialNetwork", closeChunk=True)
 

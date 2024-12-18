@@ -22,9 +22,9 @@ except ImportError:
     from shiboken2 import delete
 
 from collections import defaultdict
-import logging
 import pathlib
 import glob
+import time
 import os
 import re
 
@@ -33,16 +33,12 @@ import texture_connector.config as config
 import texture_connector.utils as utils
 
 
-logger = logging.getLogger(__name__)
-# logger.setLevel(logging.DEBUG)
-
-
 class MaterialSettingsListWidget(QtWidgets.QWidget):
     PREFERENCES_PATH = utils.get_preferences_path()
 
-    IMAGE_EXTENSIONS = [
-        image_extension.value for image_extension in config.ImageExtensions
-    ]
+    IMAGE_EXTENSIONS = tuple(
+        [image_extension.value for image_extension in config.ImageExtensions]
+    )
 
     directory_changed = QtCore.Signal()
     update_clicked = QtCore.Signal()
@@ -125,7 +121,7 @@ class MaterialSettingsListWidget(QtWidgets.QWidget):
     def _directory_changed_file_system_watcher(self) -> None:
         self.directory_changed.emit()
 
-        logger.debug("File system watcher called.")
+        utils.Logger.debug("File system watcher called.")
 
     def _search_material_text_changed_line_edit(self) -> None:
         text = self.search_material_line_edit.text()
@@ -230,9 +226,9 @@ class MaterialSettingsListWidget(QtWidgets.QWidget):
 
             file_system_watcher_directories = self.file_system_watcher.directories()
 
-            logger.debug(
-                f"File system watcher directories after added: "
-                f"{file_system_watcher_directories}"
+            utils.Logger.debug(
+                f"File system watcher directories after adding "
+                f"{file_system_watcher_directories}."
             )
 
     def clear_file_system_watcher(self) -> None:
@@ -243,9 +239,9 @@ class MaterialSettingsListWidget(QtWidgets.QWidget):
 
         file_system_watcher_directories = self.file_system_watcher.directories()
 
-        logger.debug(
-            f"File system watcher directories after removed: "
-            f"{file_system_watcher_directories}"
+        utils.Logger.debug(
+            f"File system watcher directories after removing "
+            f"{file_system_watcher_directories}."
         )
 
     def clear_material_settings_widgets(self) -> None:
@@ -255,6 +251,8 @@ class MaterialSettingsListWidget(QtWidgets.QWidget):
     def create_material_settings_widgets(self) -> None:
         self._load_preferences()
         self.clear_material_settings_widgets()
+
+        time_start = time.time()
 
         material_texture_paths = self._get_material_texture_paths()
 
@@ -303,6 +301,12 @@ class MaterialSettingsListWidget(QtWidgets.QWidget):
                     opacity_widget.set_path(texture_path)
                     opacity_widget.set_text(texture_path_short_name)
 
+        time_end = time.time()
+
+        utils.Logger.debug(
+            f"Material settings widgets created in {time_end - time_start:.04f}."
+        )
+
         self._search_material_text_changed_line_edit()
 
     def get_material_settings_widgets(self) -> list[MaterialSettingsWidget]:
@@ -317,7 +321,7 @@ class MaterialSettingsListWidget(QtWidgets.QWidget):
     def set_folder_path(self, folder_path: str) -> None:
         self.folder_path = folder_path
 
-        logger.debug(f"Folder path: {self.folder_path}")
+        utils.Logger.debug(f"Folder path set to {self.folder_path!r}.")
 
         self.clear_file_system_watcher()
         self.add_file_system_watcher_paths()

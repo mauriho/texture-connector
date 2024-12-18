@@ -20,8 +20,6 @@ except ImportError:
 import maya.api.OpenMaya as om
 import maya.cmds as cmds
 
-import logging
-
 from texture_connector.gui.material_texture_map_settings_widget import MaterialTextureMapSettingsWidget
 from texture_connector.gui.texture_map_settings_widget import TextureMapSettingsWidget
 from texture_connector.config import RenderPlugins
@@ -29,9 +27,6 @@ from texture_connector.config import UVTilingModes
 from texture_connector.config import TextureMaps
 from texture_connector.config import ColorSpaces
 import texture_connector.utils as utils
-
-logger = logging.getLogger(__name__)
-# logger.setLevel(logging.DEBUG)
 
 
 class TextureConnectorSettingsWidget(QtWidgets.QWidget):
@@ -141,7 +136,7 @@ class TextureConnectorSettingsWidget(QtWidgets.QWidget):
         triplanar_group_box.setLayout(triplanar_form_layout)
 
     def create_call_backs(self) -> None:
-        logger.debug(f"Callbacks before create: {self.call_backs}")
+        utils.Logger.debug(f"Callbacks before creating {self.call_backs}.")
 
         if not self.call_backs:
             self.call_backs.append(
@@ -156,10 +151,10 @@ class TextureConnectorSettingsWidget(QtWidgets.QWidget):
                 )
             )
 
-        logger.debug(f"Callbacks after create: {self.call_backs}")
+        utils.Logger.debug(f"Callbacks after creating {self.call_backs}.")
 
     def delete_call_backs(self) -> None:
-        logger.debug(f"Callbacks before delete: {self.call_backs}")
+        utils.Logger.debug(f"Callbacks before deleting {self.call_backs}.")
 
         if self.call_backs:
             for call_back in self.call_backs:
@@ -167,7 +162,7 @@ class TextureConnectorSettingsWidget(QtWidgets.QWidget):
 
             self.call_backs.clear()
 
-        logger.debug(f"Callbacks after delete: {self.call_backs}")
+        utils.Logger.debug(f"Callbacks after deleting {self.call_backs}.")
 
     def _set_render_engines(self, *args) -> None:
         plugins_loaded = cmds.pluginInfo(listPlugins=True, query=True)
@@ -183,8 +178,6 @@ class TextureConnectorSettingsWidget(QtWidgets.QWidget):
 
         if current_render_engine:
             self.render_engine_combo_box.setCurrentText(current_render_engine)
-
-        logger.debug(args)
 
     def load_settings(self, settings_path: str = "") -> None:
         s = QtCore.QSettings(settings_path, QtCore.QSettings.IniFormat)
