@@ -2,7 +2,7 @@
 ========================================================================================
 Name: texture_connector_ui.py
 Author: Mauricio Gonzalez Soto
-Updated Date: 12-17-2024
+Updated Date: 12-19-2024
 
 Copyright (C) 2024 Mauricio Gonzalez Soto. All rights reserved.
 ========================================================================================
@@ -217,8 +217,8 @@ class TextureConnectorUI(QtWidgets.QDialog):
             self._opacity_settings_enable_toggled_widget
         )
 
-        self.material_settings_list_widget.directory_changed.connect(
-            self._material_settings_list_directory_changed_widget
+        self.material_settings_list_widget.update_clicked.connect(
+            self._material_settings_list_update_clicked_widget
         )
 
         self.create_materials_push_button.clicked.connect(
@@ -344,7 +344,7 @@ class TextureConnectorUI(QtWidgets.QDialog):
             self.opacity_settings_widget.is_enabled()
         )
 
-    def _material_settings_list_directory_changed_widget(self) -> None:
+    def _material_settings_list_update_clicked_widget(self) -> None:
         self._create_material_settings_widgets()
 
     def _create_materials_clicked_push_button(self) -> None:
@@ -511,7 +511,6 @@ class TextureConnectorUI(QtWidgets.QDialog):
 
             self.geometry = self.saveGeometry()
 
-        self.material_settings_list_widget.clear_file_system_watcher()
         self.texture_connector_settings_widget.delete_call_backs()
 
     def showEvent(self, event: QtGui.QShowEvent) -> None:
@@ -520,7 +519,6 @@ class TextureConnectorUI(QtWidgets.QDialog):
         if self.geometry:
             self.restoreGeometry(self.geometry)
 
-        self.material_settings_list_widget.add_file_system_watcher_paths()
         self.texture_connector_settings_widget.create_call_backs()
 
         self._load_preferences()

@@ -2,7 +2,7 @@
 ========================================================================================
 Name: material_settings_list_widget.py
 Author: Mauricio Gonzalez Soto
-Updated Date: 12-17-2024
+Updated Date: 12-19-2024
 
 Copyright (C) 2024 Mauricio Gonzalez Soto. All rights reserved.
 ========================================================================================
@@ -25,7 +25,6 @@ from collections import defaultdict
 import pathlib
 import glob
 import time
-import os
 import re
 
 from texture_connector.gui.material_settings_widget import MaterialSettingsWidget
@@ -40,7 +39,7 @@ class MaterialSettingsListWidget(QtWidgets.QWidget):
         [image_extension.value for image_extension in config.ImageExtensions]
     )
 
-    directory_changed = QtCore.Signal()
+    update_clicked = QtCore.Signal()
 
     def __init__(self) -> None:
         super().__init__()
@@ -49,8 +48,6 @@ class MaterialSettingsListWidget(QtWidgets.QWidget):
 
         self.folder_path = ""
         self.texture_maps_suffix = ()
-
-        self.file_system_watcher = QtCore.QFileSystemWatcher()
 
         self._create_widgets()
         self._create_layouts()
@@ -63,6 +60,8 @@ class MaterialSettingsListWidget(QtWidgets.QWidget):
         self.unselect_all_materials_push_button = QtWidgets.QPushButton("Unselect All")
 
         self.select_all_materials_push_button = QtWidgets.QPushButton("Select All")
+
+        self.update_materials_push_button = QtWidgets.QPushButton("Update Materials")
 
     def _create_layouts(self) -> None:
         main_layout = QtWidgets.QVBoxLayout(self)
@@ -94,12 +93,9 @@ class MaterialSettingsListWidget(QtWidgets.QWidget):
         layout.addWidget(self.select_all_materials_push_button)
 
         main_layout.addLayout(layout)
+        main_layout.addWidget(self.update_materials_push_button)
 
     def _create_connections(self) -> None:
-        self.file_system_watcher.directoryChanged.connect(
-            self._directory_changed_file_system_watcher
-        )
-
         self.search_material_line_edit.textChanged.connect(
             self._search_material_text_changed_line_edit
         )
@@ -109,11 +105,9 @@ class MaterialSettingsListWidget(QtWidgets.QWidget):
         self.select_all_materials_push_button.clicked.connect(
             self._select_all_clicked_action
         )
-
-    def _directory_changed_file_system_watcher(self) -> None:
-        self.directory_changed.emit()
-
-        utils.Logger.debug("File system watcher called.")
+        self.update_materials_push_button.clicked.connect(
+            self._update_materials_clicked_push_button
+        )
 
     def _search_material_text_changed_line_edit(self) -> None:
         text = self.search_material_line_edit.text()
@@ -133,9 +127,12 @@ class MaterialSettingsListWidget(QtWidgets.QWidget):
         for material_settings_widget in self.get_material_settings_widgets():
             material_settings_widget.set_enabled(True)
 
-    def _add_directory_and_subdirectories(self, folder_path):
-        self.file_system_watcher.addPath(folder_path)
+    def _update_materials_clicked_push_button(self) -> None:
+        self.update_clicked.emit()
 
+        utils.Logger.info("Materials updated.")
+
+    def _add_directory_and_subdirectories(self, folder_path):
         q_dir = QtCore.QDir(folder_path)
         subfolders = q_dir.entryList(QtCore.QDir.Dirs | QtCore.QDir.NoDotAndDotDot)
 
@@ -199,33 +196,6 @@ class MaterialSettingsListWidget(QtWidgets.QWidget):
             material_name = match.group(1)
 
         return material_name
-
-    def add_file_system_watcher_paths(self) -> None:
-        if os.path.exists(self.folder_path):
-            if self.search_files_in_subdirectories:
-                self._add_directory_and_subdirectories(self.folder_path)
-            else:
-                self.file_system_watcher.addPath(self.folder_path)
-
-        file_system_watcher_directories = self.file_system_watcher.directories()
-
-        utils.Logger.debug(
-            f"File system watcher directories after adding "
-            f"{file_system_watcher_directories}."
-        )
-
-    def clear_file_system_watcher(self) -> None:
-        file_system_watcher_directories = self.file_system_watcher.directories()
-
-        if file_system_watcher_directories:
-            self.file_system_watcher.removePaths(file_system_watcher_directories)
-
-        file_system_watcher_directories = self.file_system_watcher.directories()
-
-        utils.Logger.debug(
-            f"File system watcher directories after removing "
-            f"{file_system_watcher_directories}."
-        )
 
     def clear_material_settings_widgets(self) -> None:
         for material_settings_widget in self.get_material_settings_widgets():
@@ -305,9 +275,6 @@ class MaterialSettingsListWidget(QtWidgets.QWidget):
         self.folder_path = folder_path
 
         utils.Logger.debug(f"Folder path set to {self.folder_path!r}.")
-
-        self.clear_file_system_watcher()
-        self.add_file_system_watcher_paths()
 
     def set_texture_maps_suffix(
         self, texture_maps_suffix: tuple[tuple[str, str], ...]
