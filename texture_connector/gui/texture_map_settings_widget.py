@@ -2,7 +2,7 @@
 ========================================================================================
 Name: texture_map_settings_widget.py
 Author: Mauricio Gonzalez Soto
-Updated Date: 12-17-2024
+Updated Date: 01-10-2025
 
 Copyright (C) 2024 Mauricio Gonzalez Soto. All rights reserved.
 ========================================================================================
@@ -97,6 +97,9 @@ class TextureMapSettingsWidget(QtWidgets.QWidget):
 
     def set_color_space(self, color_space: str) -> None:
         self.color_spaces_combo_box.setCurrentText(color_space)
+
+    def set_color_spaces_visible(self, enabled: bool) -> None:
+        self.color_spaces_combo_box.setVisible(enabled)
 
     def set_enabled(self, enabled: bool) -> None:
         self.enable_check_box.setChecked(enabled)

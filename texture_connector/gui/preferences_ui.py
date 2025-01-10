@@ -2,7 +2,7 @@
 ========================================================================================
 Name: preferences_ui.py
 Author: Mauricio Gonzalez Soto
-Updated Date: 12-17-2024
+Updated Date: 01-10-2025
 
 Copyright (C) 2024 Mauricio Gonzalez Soto. All rights reserved.
 ========================================================================================
@@ -29,12 +29,15 @@ class PreferencesUI(QtWidgets.QDialog):
 
     PREFERENCES_PATH = utils.get_preferences_path()
 
+    GENERAL = "General"
+    COLOR_MANAGEMENT = "Color Management"
+
     save_clicked = QtCore.Signal()
 
     def __init__(self, parent: QtWidgets.QWidget) -> None:
         super().__init__(parent)
 
-        self.resize(400, 200)
+        self.resize(600, 400)
         self.setObjectName(PreferencesUI.WINDOW_NAME)
         self.setWindowTitle(PreferencesUI.WINDOW_TITLE)
         self.setModal(True)
@@ -45,11 +48,21 @@ class PreferencesUI(QtWidgets.QDialog):
         self._load_preferences()
 
     def _create_widgets(self) -> None:
+        self.categories_list_widget = QtWidgets.QListWidget()
+        self.categories_list_widget.addItems(
+            [PreferencesUI.GENERAL, PreferencesUI.COLOR_MANAGEMENT]
+        )
+        self.categories_list_widget.setCurrentRow(0)
+        self.categories_list_widget.setFixedWidth(150)
+
         self.search_files_in_subdirectories_check_box = QtWidgets.QCheckBox(
             "Search files in subdirectories"
         )
         self.auto_set_project_source_images_folder_check_box = QtWidgets.QCheckBox(
             "Auto-set project sourceimages folder"
+        )
+        self.use_maya_color_space_rules_check_box = QtWidgets.QCheckBox(
+            "Use Maya color space rules"
         )
 
         self.save_push_button = QtWidgets.QPushButton("Save")
@@ -62,25 +75,67 @@ class PreferencesUI(QtWidgets.QDialog):
         main_layout.setContentsMargins(6, 6, 6, 6)
         main_layout.setSpacing(3)
 
-        group_box = QtWidgets.QGroupBox()
-        main_layout.addWidget(group_box)
+        h_box_layout = QtWidgets.QHBoxLayout()
+        main_layout.addLayout(h_box_layout)
 
-        form_layout = QtWidgets.QFormLayout()
-        form_layout.addWidget(self.auto_set_project_source_images_folder_check_box)
-        form_layout.addWidget(self.search_files_in_subdirectories_check_box)
-        form_layout.setContentsMargins(3, 3, 3, 3)
-        form_layout.setSpacing(3)
-        group_box.setLayout(form_layout)
+        left_layout = QtWidgets.QVBoxLayout()
+        left_layout.addWidget(self.categories_list_widget)
+        h_box_layout.addLayout(left_layout)
+
+        right_layout = QtWidgets.QVBoxLayout()
+        right_layout.setAlignment(QtCore.Qt.AlignTop)
+        h_box_layout.addLayout(right_layout)
+
+        self.general_group_box = QtWidgets.QGroupBox("Main Window")
+        right_layout.addWidget(self.general_group_box)
+
+        general_form_layout = QtWidgets.QFormLayout()
+        general_form_layout.addWidget(
+            self.auto_set_project_source_images_folder_check_box
+        )
+        general_form_layout.addWidget(self.search_files_in_subdirectories_check_box)
+        general_form_layout.setContentsMargins(3, 3, 3, 3)
+        general_form_layout.setSpacing(3)
+        self.general_group_box.setLayout(general_form_layout)
+
+        self.color_management_group_box = QtWidgets.QGroupBox("Color Management")
+        self.color_management_group_box.setVisible(False)
+        right_layout.addWidget(self.color_management_group_box)
+
+        color_management_form_layout = QtWidgets.QFormLayout()
+        color_management_form_layout.addWidget(
+            self.use_maya_color_space_rules_check_box
+        )
+        color_management_form_layout.setContentsMargins(3, 3, 3, 3)
+        color_management_form_layout.setSpacing(3)
+        self.color_management_group_box.setLayout(color_management_form_layout)
 
         h_box_layout = QtWidgets.QHBoxLayout()
         h_box_layout.addWidget(self.save_push_button)
         h_box_layout.addWidget(self.cancel_push_button)
-        main_layout.addStretch()
         main_layout.addLayout(h_box_layout)
 
     def _create_connections(self) -> None:
+        self.categories_list_widget.itemClicked.connect(
+            self._categories_item_clicked_list_widget
+        )
+
         self.save_push_button.clicked.connect(self._save_clicked_push_button)
         self.cancel_push_button.clicked.connect(self.close)
+
+    def _categories_item_clicked_list_widget(
+        self, item: QtWidgets.QListWidgetItem
+    ) -> None:
+
+        self.general_group_box.setVisible(False)
+        self.color_management_group_box.setVisible(False)
+
+        category = item.text()
+
+        if category == PreferencesUI.GENERAL:
+            self.general_group_box.setVisible(True)
+        elif category == PreferencesUI.COLOR_MANAGEMENT:
+            self.color_management_group_box.setVisible(True)
 
     def _save_clicked_push_button(self) -> None:
         self._save_preferences()
@@ -91,22 +146,25 @@ class PreferencesUI(QtWidgets.QDialog):
     def _load_preferences(self) -> None:
         s = QtCore.QSettings(PreferencesUI.PREFERENCES_PATH, QtCore.QSettings.IniFormat)
 
-        s.beginGroup("preferences")
-
+        s.beginGroup("general")
         self.search_files_in_subdirectories_check_box.setChecked(
             bool(s.value("searchFilesInSubdirectories", True, bool))
         )
         self.auto_set_project_source_images_folder_check_box.setChecked(
             bool(s.value("autoSetProjectSourceImagesFolder", False, bool))
         )
+        s.endGroup()
 
+        s.beginGroup("colorManagement")
+        self.use_maya_color_space_rules_check_box.setChecked(
+            bool(s.value("useMayaColorSpaceRules", False, bool))
+        )
         s.endGroup()
 
     def _save_preferences(self) -> None:
         s = QtCore.QSettings(PreferencesUI.PREFERENCES_PATH, QtCore.QSettings.IniFormat)
 
-        s.beginGroup("preferences")
-
+        s.beginGroup("general")
         s.setValue(
             "searchFilesInSubdirectories",
             self.search_files_in_subdirectories_check_box.isChecked(),
@@ -115,5 +173,11 @@ class PreferencesUI(QtWidgets.QDialog):
             "autoSetProjectSourceImagesFolder",
             self.auto_set_project_source_images_folder_check_box.isChecked(),
         )
+        s.endGroup()
 
+        s.beginGroup("colorManagement")
+        s.setValue(
+            "useMayaColorSpaceRules",
+            self.use_maya_color_space_rules_check_box.isChecked(),
+        )
         s.endGroup()

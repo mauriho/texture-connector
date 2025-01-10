@@ -12,7 +12,7 @@ from PySide2 import QtWidgets
 
 import sys
 
-from texture_connector.gui.texture_connector_settings_widget import TextureConnectorSettingsWidget
+from texture_connector.gui.settings_widget import TextureConnectorSettingsWidget
 
 
 def main():

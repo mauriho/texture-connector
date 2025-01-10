@@ -2,7 +2,7 @@
 ========================================================================================
 Name: material_settings_widget.py
 Author: Mauricio Gonzalez Soto
-Updated Date: 12-15-2024
+Updated Date: 01-10-2024
 
 Copyright (C) 2024 Mauricio Gonzalez Soto. All rights reserved.
 ========================================================================================
@@ -136,6 +136,9 @@ class MaterialSettingsWidget(QtWidgets.QWidget):
 
     def get_opacity_settings_widget(self) -> TextureMapSettingsWidget:
         return self.opacity_settings_widget
+
+    def set_color_spaces_visible(self, enabled: bool) -> None:
+        self.material_texture_map_settings_widget.set_color_spaces_visible(enabled)
 
     def set_enabled(self, enabled: bool) -> None:
         self.enable_check_box.setChecked(enabled)

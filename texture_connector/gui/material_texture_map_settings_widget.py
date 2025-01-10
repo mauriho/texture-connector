@@ -2,7 +2,7 @@
 ========================================================================================
 Name: material_texture_map_settings_widget.py
 Author: Mauricio Gonzalez Soto
-Updated Date: 12-15-2024
+Updated Date: 01-10-2025
 
 Copyright (C) 2024 Mauricio Gonzalez Soto. All rights reserved.
 ========================================================================================
@@ -95,6 +95,15 @@ class MaterialTextureMapSettingsWidget(QtWidgets.QWidget):
 
     def get_opacity_settings_widget(self) -> TextureMapSettingsWidget:
         return self.opacity_texture_map_settings_widget
+
+    def set_color_spaces_visible(self, enabled: bool) -> None:
+        self.base_color_texture_map_settings_widget.set_color_spaces_visible(enabled)
+        self.roughness_texture_map_settings_widget.set_color_spaces_visible(enabled)
+        self.metalness_texture_map_settings_widget.set_color_spaces_visible(enabled)
+        self.normal_texture_map_settings_widget.set_color_spaces_visible(enabled)
+        self.height_texture_map_settings_widget.set_color_spaces_visible(enabled)
+        self.emissive_texture_map_settings_widget.set_color_spaces_visible(enabled)
+        self.opacity_texture_map_settings_widget.set_color_spaces_visible(enabled)
 
     def set_read_only(self) -> None:
         self.base_color_texture_map_settings_widget.set_read_only()

@@ -2,7 +2,7 @@
 ========================================================================================
 Name: create_material_network.py
 Author: Mauricio Gonzalez Soto
-Updated Date: 12-17-2024
+Updated Date: 01-10-2025
 
 Copyright (C) 2024 Mauricio Gonzalez Soto. All rights reserved.
 ========================================================================================
@@ -34,6 +34,7 @@ class CreateMaterialNetwork:
     def __init__(self) -> None:
         self.name = ""
         self.uv_tiling_mode = ""
+        self.use_maya_color_space_rules = False
         self.use_triplanar = False
 
         self.float_constant_node = ""
@@ -84,8 +85,16 @@ class CreateMaterialNetwork:
         self.opacity_suffix = ""
         self.opacity_triplanar_node = ""
 
-    def create(self, name: str, use_triplanar: bool, uv_tiling_mode: str) -> None:
+    def create(
+        self,
+        name: str,
+        use_maya_color_space_rules: bool,
+        use_triplanar: bool,
+        uv_tiling_mode: str,
+    ) -> None:
+
         self.name = name
+        self.use_maya_color_space_rules = use_maya_color_space_rules
         self.use_triplanar = use_triplanar
         self.uv_tiling_mode = uv_tiling_mode
 
@@ -479,9 +488,10 @@ class CreateMaterialNetwork:
     def _set_texture_file_node_settings(
         self, color_space: str, file_path: str, node: str
     ) -> None:
-        cmds.setAttr(f"{node}.ignoreColorSpaceFileRules", True)
         cmds.setAttr(f"{node}.fileTextureName", file_path, type="string")
-        cmds.setAttr(f"{node}.colorSpace", color_space, type="string")
+
+        if not self.use_maya_color_space_rules:
+            cmds.setAttr(f"{node}.colorSpace", color_space, type="string")
 
         if UVTilingModes.OFF == self.uv_tiling_mode:
             cmds.setAttr(f"{node}.uvTilingMode", 0)

@@ -1,8 +1,8 @@
 """
 ========================================================================================
-Name: texture_connector_settings_widget.py
+Name: settings_widget.py
 Author: Mauricio Gonzalez Soto
-Updated Date: 12-17-2024
+Updated Date: 01-10-2025
 
 Copyright (C) 2024 Mauricio Gonzalez Soto. All rights reserved.
 ========================================================================================
@@ -29,7 +29,7 @@ from texture_connector.config import ColorSpaces
 import texture_connector.utils as utils
 
 
-class TextureConnectorSettingsWidget(QtWidgets.QWidget):
+class SettingsWidget(QtWidgets.QWidget):
     PREFERENCES_PATH = utils.get_preferences_path()
 
     def __init__(self) -> None:
@@ -50,7 +50,7 @@ class TextureConnectorSettingsWidget(QtWidgets.QWidget):
         self._create_widgets()
         self._create_layouts()
         self._set_render_engines()
-        self.load_settings(TextureConnectorSettingsWidget.PREFERENCES_PATH)
+        self.load_settings(SettingsWidget.PREFERENCES_PATH)
 
     def _create_widgets(self) -> None:
         self.render_engine_combo_box = QtWidgets.QComboBox()
@@ -258,7 +258,7 @@ class TextureConnectorSettingsWidget(QtWidgets.QWidget):
 
     def save_settings(self) -> None:
         s = QtCore.QSettings(
-            TextureConnectorSettingsWidget.PREFERENCES_PATH, QtCore.QSettings.IniFormat
+            SettingsWidget.PREFERENCES_PATH, QtCore.QSettings.IniFormat
         )
 
         s.beginGroup("settings")
@@ -373,3 +373,6 @@ class TextureConnectorSettingsWidget(QtWidgets.QWidget):
 
     def get_uv_tiling_mode(self) -> str:
         return self.uv_tiling_mode_combo_box.currentText()
+
+    def set_color_spaces_visible(self, enabled: bool) -> None:
+        self.material_texture_map_settings_widget.set_color_spaces_visible(enabled)

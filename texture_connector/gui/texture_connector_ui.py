@@ -2,7 +2,7 @@
 ========================================================================================
 Name: texture_connector_ui.py
 Author: Mauricio Gonzalez Soto
-Updated Date: 12-19-2024
+Updated Date: 01-10-2025
 
 Copyright (C) 2024 Mauricio Gonzalez Soto. All rights reserved.
 ========================================================================================
@@ -25,9 +25,9 @@ from maya import cmds
 import webbrowser
 import os
 
-from texture_connector.gui.texture_connector_settings_widget import TextureConnectorSettingsWidget
 from texture_connector.gui.material_settings_list_widget import MaterialSettingsListWidget
 from texture_connector.gui.material_settings_widget import MaterialSettingsWidget
+from texture_connector.gui.settings_widget import SettingsWidget
 from texture_connector.gui.preferences_ui import PreferencesUI
 from texture_connector.core import CreateMaterialNetworkRedshift
 from texture_connector.core import CreateMaterialNetworkArnold
@@ -70,11 +70,13 @@ class TextureConnectorUI(QtWidgets.QDialog):
 
         self.preferences_ui = PreferencesUI(self)
         self.auto_set_project_source_images_folder = False
+        self.use_maya_color_space_rules = False
 
         self.resize(800, 600)
         self.setObjectName(TextureConnectorUI.WINDOW_NAME)
         self.setWindowTitle(TextureConnectorUI.WINDOW_TITLE)
 
+        self._load_preferences()
         self._create_widgets()
         self._create_layouts()
         self._create_connections()
@@ -101,28 +103,31 @@ class TextureConnectorUI(QtWidgets.QDialog):
             QtCore.QSize(push_button_size, push_button_size)
         )
 
-        self.texture_connector_settings_widget = TextureConnectorSettingsWidget()
+        self.settings_widget = SettingsWidget()
+        self.settings_widget.set_color_spaces_visible(
+            not self.use_maya_color_space_rules
+        )
 
         self.base_color_settings_widget = (
-            self.texture_connector_settings_widget.get_base_color_settings_widget()
+            self.settings_widget.get_base_color_settings_widget()
         )
         self.roughness_settings_widget = (
-            self.texture_connector_settings_widget.get_roughness_settings_widget()
+            self.settings_widget.get_roughness_settings_widget()
         )
         self.metalness_settings_widget = (
-            self.texture_connector_settings_widget.get_metalness_settings_widget()
+            self.settings_widget.get_metalness_settings_widget()
         )
         self.normal_settings_widget = (
-            self.texture_connector_settings_widget.get_normal_settings_widget()
+            self.settings_widget.get_normal_settings_widget()
         )
         self.height_settings_widget = (
-            self.texture_connector_settings_widget.get_height_settings_widget()
+            self.settings_widget.get_height_settings_widget()
         )
         self.emissive_settings_widget = (
-            self.texture_connector_settings_widget.get_emissive_settings_widget()
+            self.settings_widget.get_emissive_settings_widget()
         )
         self.opacity_settings_widget = (
-            self.texture_connector_settings_widget.get_opacity_settings_widget()
+            self.settings_widget.get_opacity_settings_widget()
         )
 
         self.material_settings_list_widget = MaterialSettingsListWidget()
@@ -149,7 +154,7 @@ class TextureConnectorUI(QtWidgets.QDialog):
         splitter.addWidget(left_widget)
 
         left_layout = QtWidgets.QVBoxLayout()
-        left_layout.addWidget(self.texture_connector_settings_widget)
+        left_layout.addWidget(self.settings_widget)
         left_layout.setContentsMargins(0, 0, 0, 0)
         left_widget.setLayout(left_layout)
 
@@ -228,10 +233,10 @@ class TextureConnectorUI(QtWidgets.QDialog):
         self.preferences_ui.save_clicked.connect(self._preferences_ui_save_clicked)
 
     def _save_settings(self) -> None:
-        self.texture_connector_settings_widget.save_settings()
+        self.settings_widget.save_settings()
 
     def _reset_settings(self) -> None:
-        self.texture_connector_settings_widget.load_settings()
+        self.settings_widget.load_settings()
 
     def _open_preferences(self) -> None:
         self.preferences_ui.show()
@@ -245,10 +250,14 @@ class TextureConnectorUI(QtWidgets.QDialog):
             TextureConnectorUI.PREFERENCES_PATH, QtCore.QSettings.IniFormat
         )
 
-        s.beginGroup("preferences")
+        s.beginGroup("general")
         self.auto_set_project_source_images_folder = s.value(
             "autoSetProjectSourceImagesFolder", False, bool
         )
+        s.endGroup()
+
+        s.beginGroup("colorManagement")
+        self.use_maya_color_space_rules = s.value("useMayaColorSpaceRules", False, bool)
         s.endGroup()
 
     def _folder_path_return_pressed_line_edit(self) -> None:
@@ -348,7 +357,7 @@ class TextureConnectorUI(QtWidgets.QDialog):
         self._create_material_settings_widgets()
 
     def _create_materials_clicked_push_button(self) -> None:
-        render_engine = self.texture_connector_settings_widget.get_render_engine()
+        render_engine = self.settings_widget.get_render_engine()
         materials = self.material_settings_list_widget.get_material_settings_widgets()
         count = 0
 
@@ -381,11 +390,20 @@ class TextureConnectorUI(QtWidgets.QDialog):
             utils.Logger.warning("No material has been created.")
 
     def _preferences_ui_save_clicked(self):
+        self._load_preferences()
+
         if not self.folder_path_line_edit.text():
-            self._load_preferences()
             self._set_project_source_images_folder()
 
         self._folder_path_return_pressed_line_edit()
+
+        self.settings_widget.set_color_spaces_visible(
+            not self.use_maya_color_space_rules
+        )
+
+        self.material_settings_list_widget.set_color_spaces_visible(
+            not self.use_maya_color_space_rules
+        )
 
     def _create_material_network(
         self,
@@ -464,28 +482,29 @@ class TextureConnectorUI(QtWidgets.QDialog):
                     suffix=self.opacity_settings_widget.get_text(),
                 )
 
-        triplanar = self.texture_connector_settings_widget.is_use_triplanar_checked()
-        uv_tiling_mode = self.texture_connector_settings_widget.get_uv_tiling_mode()
+        triplanar = self.settings_widget.is_use_triplanar_checked()
+        uv_tiling_mode = self.settings_widget.get_uv_tiling_mode()
 
         material_network.create(
             name=material_settings_widget.get_material_name(),
+            use_maya_color_space_rules=self.use_maya_color_space_rules,
             use_triplanar=triplanar,
             uv_tiling_mode=uv_tiling_mode,
         )
 
     def _create_material_settings_widgets(self) -> None:
         self.material_settings_list_widget.set_texture_maps_suffix(
-            self.texture_connector_settings_widget.get_texture_maps_suffix()
+            self.settings_widget.get_texture_maps_suffix()
         )
 
         self.material_settings_list_widget.create_material_settings_widgets()
 
         self.material_settings_list_widget.set_texture_map_widgets_color_space(
-            self.texture_connector_settings_widget.get_texture_maps_color_space()
+            self.settings_widget.get_texture_maps_color_space()
         )
 
         self.material_settings_list_widget.set_texture_map_widgets_enabled(
-            self.texture_connector_settings_widget.get_texture_maps_enabled()
+            self.settings_widget.get_texture_maps_enabled()
         )
 
     def _set_project_source_images_folder(self) -> None:
@@ -511,7 +530,7 @@ class TextureConnectorUI(QtWidgets.QDialog):
 
             self.geometry = self.saveGeometry()
 
-        self.texture_connector_settings_widget.delete_call_backs()
+        self.settings_widget.delete_call_backs()
 
     def showEvent(self, event: QtGui.QShowEvent) -> None:
         super().showEvent(event)
@@ -519,7 +538,7 @@ class TextureConnectorUI(QtWidgets.QDialog):
         if self.geometry:
             self.restoreGeometry(self.geometry)
 
-        self.texture_connector_settings_widget.create_call_backs()
+        self.settings_widget.create_call_backs()
 
         self._load_preferences()
         self._set_project_source_images_folder()

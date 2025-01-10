@@ -2,7 +2,7 @@
 ========================================================================================
 Name: material_settings_list_widget.py
 Author: Mauricio Gonzalez Soto
-Updated Date: 12-19-2024
+Updated Date: 01-10-2025
 
 Copyright (C) 2024 Mauricio Gonzalez Soto. All rights reserved.
 ========================================================================================
@@ -45,6 +45,7 @@ class MaterialSettingsListWidget(QtWidgets.QWidget):
         super().__init__()
 
         self.search_files_in_subdirectories = True
+        self.use_maya_color_space_rules = False
 
         self.folder_path = ""
         self.texture_maps_suffix = ()
@@ -78,7 +79,7 @@ class MaterialSettingsListWidget(QtWidgets.QWidget):
         self.material_list_items_widget = QtWidgets.QWidget()
         self.material_list_items_widget.setAutoFillBackground(True)
         palette = self.material_list_items_widget.palette()
-        palette.setColor(QtGui.QPalette.Window, QtGui.QColor(40, 40, 40))
+        palette.setColor(QtGui.QPalette.Background, QtGui.QColor(40, 40, 40))
         self.material_list_items_widget.setPalette(palette)
         scroll_area.setWidget(self.material_list_items_widget)
 
@@ -144,12 +145,14 @@ class MaterialSettingsListWidget(QtWidgets.QWidget):
             MaterialSettingsListWidget.PREFERENCES_PATH, QtCore.QSettings.IniFormat
         )
 
-        s.beginGroup("preferences")
-
+        s.beginGroup("general")
         self.search_files_in_subdirectories = s.value(
             "searchFilesInSubdirectories", True, bool
         )
+        s.endGroup()
 
+        s.beginGroup("colorManagement")
+        self.use_maya_color_space_rules = s.value("useMayaColorSpaceRules", False, bool)
         s.endGroup()
 
     def _get_material_texture_paths(
@@ -212,6 +215,9 @@ class MaterialSettingsListWidget(QtWidgets.QWidget):
         for material_name, textures_paths in material_texture_paths.items():
             material_widget = MaterialSettingsWidget()
             material_widget.set_material_name(material_name)
+            material_widget.set_color_spaces_visible(
+                not self.use_maya_color_space_rules
+            )
             self.material_items_list_v_box_layout.addWidget(material_widget)
 
             for texture_type, texture_path in textures_paths:
@@ -270,6 +276,10 @@ class MaterialSettingsListWidget(QtWidgets.QWidget):
                 material_settings_widgets.append(child)
 
         return material_settings_widgets
+
+    def set_color_spaces_visible(self, enabled: bool) -> None:
+        for material_widget in self.get_material_settings_widgets():
+            material_widget.set_color_spaces_visible(enabled)
 
     def set_folder_path(self, folder_path: str) -> None:
         self.folder_path = folder_path
