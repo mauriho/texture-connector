@@ -15,13 +15,11 @@ except ImportError:
     from PySide2 import QtWidgets
     from PySide2 import QtCore
 
-from texture_connector.config import ColorSpaces
+from texture_connector.gui.color_space_widget import ColorSpaceWidget
 
 
 class TextureMapSettingsWidget(QtWidgets.QWidget):
-    COLOR_SPACES = [color_space.value for color_space in ColorSpaces]
-
-    current_color_space_changed = QtCore.Signal(str)
+    color_space_changed = QtCore.Signal(str)
     enable_toggled = QtCore.Signal(bool)
 
     def __init__(self) -> None:
@@ -42,8 +40,7 @@ class TextureMapSettingsWidget(QtWidgets.QWidget):
 
         self.text_line_edit = QtWidgets.QLineEdit()
 
-        self.color_spaces_combo_box = QtWidgets.QComboBox()
-        self.color_spaces_combo_box.addItems(TextureMapSettingsWidget.COLOR_SPACES)
+        self.color_spaces_widget = ColorSpaceWidget()
 
     def _create_layouts(self) -> None:
         main_layout = QtWidgets.QHBoxLayout(self)
@@ -64,15 +61,15 @@ class TextureMapSettingsWidget(QtWidgets.QWidget):
         layout = QtWidgets.QHBoxLayout()
         layout.addWidget(self.title_label)
         layout.addWidget(self.text_line_edit)
-        layout.addWidget(self.color_spaces_combo_box)
+        layout.addWidget(self.color_spaces_widget)
         layout.setContentsMargins(3, 3, 3, 3)
         layout.setSpacing(3)
         self.frame.setLayout(layout)
 
     def _create_connections(self) -> None:
         self.enable_check_box.toggled.connect(self._enabled_toggled_check_box)
-        self.color_spaces_combo_box.currentTextChanged.connect(
-            self._color_spaces_current_text_changed_combo_box
+        self.color_spaces_widget.color_space_changed.connect(
+            self._color_spaces_color_space_changed_combo_box
         )
 
     def _enabled_toggled_check_box(self, checked: bool) -> None:
@@ -80,14 +77,14 @@ class TextureMapSettingsWidget(QtWidgets.QWidget):
 
         self.enable_toggled.emit(checked)
 
-    def _color_spaces_current_text_changed_combo_box(self, text: str) -> None:
-        self.current_color_space_changed.emit(text)
+    def _color_spaces_color_space_changed_combo_box(self, text: str) -> None:
+        self.color_space_changed.emit(text)
 
     def is_enabled(self) -> bool:
         return self.enable_check_box.isChecked()
 
     def get_color_space(self) -> str:
-        return self.color_spaces_combo_box.currentText()
+        return self.color_spaces_widget.get_color_space()
 
     def get_path(self) -> str:
         return self.path
@@ -96,10 +93,10 @@ class TextureMapSettingsWidget(QtWidgets.QWidget):
         return self.text_line_edit.text()
 
     def set_color_space(self, color_space: str) -> None:
-        self.color_spaces_combo_box.setCurrentText(color_space)
+        self.color_spaces_widget.set_color_space(color_space)
 
     def set_color_spaces_visible(self, enabled: bool) -> None:
-        self.color_spaces_combo_box.setVisible(enabled)
+        self.color_spaces_widget.setVisible(enabled)
 
     def set_enabled(self, enabled: bool) -> None:
         self.enable_check_box.setChecked(enabled)
@@ -117,3 +114,6 @@ class TextureMapSettingsWidget(QtWidgets.QWidget):
 
     def set_title(self, title: str) -> None:
         self.title_label.setText(title)
+
+    def update_color_spaces(self) -> None:
+        self.color_spaces_widget.update_color_spaces()

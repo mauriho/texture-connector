@@ -68,6 +68,8 @@ class TextureConnectorUI(QtWidgets.QDialog):
 
         self.geometry = None
 
+        self.script_jobs = []
+
         self.preferences_ui = PreferencesUI(self)
         self.auto_set_project_source_images_folder = False
         self.use_maya_color_space_rules = False
@@ -117,12 +119,8 @@ class TextureConnectorUI(QtWidgets.QDialog):
         self.metalness_settings_widget = (
             self.settings_widget.get_metalness_settings_widget()
         )
-        self.normal_settings_widget = (
-            self.settings_widget.get_normal_settings_widget()
-        )
-        self.height_settings_widget = (
-            self.settings_widget.get_height_settings_widget()
-        )
+        self.normal_settings_widget = self.settings_widget.get_normal_settings_widget()
+        self.height_settings_widget = self.settings_widget.get_height_settings_widget()
         self.emissive_settings_widget = (
             self.settings_widget.get_emissive_settings_widget()
         )
@@ -179,44 +177,44 @@ class TextureConnectorUI(QtWidgets.QDialog):
             self._select_folder_path_clicked_push_button
         )
 
-        self.base_color_settings_widget.current_color_space_changed.connect(
-            self._base_color_settings_current_color_space_changed_widget
+        self.base_color_settings_widget.color_space_changed.connect(
+            self._base_color_settings_color_space_changed_widget
         )
         self.base_color_settings_widget.enable_toggled.connect(
             self._base_color_settings_enable_toggled_widget
         )
-        self.roughness_settings_widget.current_color_space_changed.connect(
-            self._roughness_settings_current_color_space_changed_widget
+        self.roughness_settings_widget.color_space_changed.connect(
+            self._roughness_settings_color_space_changed_widget
         )
         self.roughness_settings_widget.enable_toggled.connect(
             self._roughness_settings_enable_toggled_widget
         )
-        self.metalness_settings_widget.current_color_space_changed.connect(
-            self._metalness_settings_current_color_space_changed_widget
+        self.metalness_settings_widget.color_space_changed.connect(
+            self._metalness_settings_color_space_changed_widget
         )
         self.metalness_settings_widget.enable_toggled.connect(
             self._metalness_settings_enable_toggled_widget
         )
-        self.normal_settings_widget.current_color_space_changed.connect(
-            self._normal_settings_current_color_space_changed_widget
+        self.normal_settings_widget.color_space_changed.connect(
+            self._normal_settings_color_space_changed_widget
         )
         self.normal_settings_widget.enable_toggled.connect(
             self._normal_settings_enable_toggled_widget
         )
-        self.height_settings_widget.current_color_space_changed.connect(
-            self._height_settings_current_color_space_changed_widget
+        self.height_settings_widget.color_space_changed.connect(
+            self._height_settings_color_space_changed_widget
         )
         self.height_settings_widget.enable_toggled.connect(
             self._height_settings_enable_toggled_widget
         )
-        self.emissive_settings_widget.current_color_space_changed.connect(
-            self._emissive_settings_current_color_space_changed_widget
+        self.emissive_settings_widget.color_space_changed.connect(
+            self._emissive_settings_color_space_changed_widget
         )
         self.emissive_settings_widget.enable_toggled.connect(
             self._emissive_settings_enable_toggled_widget
         )
-        self.opacity_settings_widget.current_color_space_changed.connect(
-            self._opacity_settings_current_color_space_changed_widget
+        self.opacity_settings_widget.color_space_changed.connect(
+            self._opacity_settings_color_space_changed_widget
         )
         self.opacity_settings_widget.enable_toggled.connect(
             self._opacity_settings_enable_toggled_widget
@@ -260,6 +258,24 @@ class TextureConnectorUI(QtWidgets.QDialog):
         self.use_maya_color_space_rules = s.value("useMayaColorSpaceRules", False, bool)
         s.endGroup()
 
+    def _create_script_jobs(self) -> None:
+        self.script_jobs.append(
+            cmds.scriptJob(
+                event=[
+                    "colorMgtConfigFilePathChanged",
+                    self._on_color_mgt_config_file_path_changed,
+                ]
+            )
+        )
+
+    def _delete_script_jobs(self) -> None:
+        for script_job in self.script_jobs:
+            cmds.scriptJob(kill=script_job)
+
+    def _on_color_mgt_config_file_path_changed(self) -> None:
+        self.settings_widget.update_color_spaces()
+        self.material_settings_list_widget.update_color_spaces()
+
     def _folder_path_return_pressed_line_edit(self) -> None:
         folder_path = self.folder_path_line_edit.text()
 
@@ -283,7 +299,7 @@ class TextureConnectorUI(QtWidgets.QDialog):
             self.material_settings_list_widget.set_folder_path(folder_path)
             self._create_material_settings_widgets()
 
-    def _base_color_settings_current_color_space_changed_widget(self) -> None:
+    def _base_color_settings_color_space_changed_widget(self) -> None:
         self.material_settings_list_widget.set_base_color_widgets_color_space(
             self.base_color_settings_widget.get_color_space()
         )
@@ -293,7 +309,7 @@ class TextureConnectorUI(QtWidgets.QDialog):
             self.base_color_settings_widget.is_enabled()
         )
 
-    def _roughness_settings_current_color_space_changed_widget(self) -> None:
+    def _roughness_settings_color_space_changed_widget(self) -> None:
         self.material_settings_list_widget.set_roughness_widgets_color_space(
             self.roughness_settings_widget.get_color_space()
         )
@@ -303,7 +319,7 @@ class TextureConnectorUI(QtWidgets.QDialog):
             self.roughness_settings_widget.is_enabled()
         )
 
-    def _metalness_settings_current_color_space_changed_widget(self) -> None:
+    def _metalness_settings_color_space_changed_widget(self) -> None:
         self.material_settings_list_widget.set_metalness_widgets_color_space(
             self.metalness_settings_widget.get_color_space()
         )
@@ -313,7 +329,7 @@ class TextureConnectorUI(QtWidgets.QDialog):
             self.metalness_settings_widget.is_enabled()
         )
 
-    def _normal_settings_current_color_space_changed_widget(self) -> None:
+    def _normal_settings_color_space_changed_widget(self) -> None:
         self.material_settings_list_widget.set_normal_widgets_color_space(
             self.normal_settings_widget.get_color_space()
         )
@@ -323,7 +339,7 @@ class TextureConnectorUI(QtWidgets.QDialog):
             self.normal_settings_widget.is_enabled()
         )
 
-    def _height_settings_current_color_space_changed_widget(self) -> None:
+    def _height_settings_color_space_changed_widget(self) -> None:
         self.material_settings_list_widget.set_height_widgets_color_space(
             self.height_settings_widget.get_color_space()
         )
@@ -333,7 +349,7 @@ class TextureConnectorUI(QtWidgets.QDialog):
             self.height_settings_widget.is_enabled()
         )
 
-    def _emissive_settings_current_color_space_changed_widget(self) -> None:
+    def _emissive_settings_color_space_changed_widget(self) -> None:
         self.material_settings_list_widget.set_emissive_widgets_color_space(
             self.emissive_settings_widget.get_color_space()
         )
@@ -343,7 +359,7 @@ class TextureConnectorUI(QtWidgets.QDialog):
             self.emissive_settings_widget.is_enabled()
         )
 
-    def _opacity_settings_current_color_space_changed_widget(self) -> None:
+    def _opacity_settings_color_space_changed_widget(self) -> None:
         self.material_settings_list_widget.set_opacity_widgets_color_space(
             self.opacity_settings_widget.get_color_space()
         )
@@ -410,6 +426,7 @@ class TextureConnectorUI(QtWidgets.QDialog):
         material_network: CreateMaterialNetwork,
         material_settings_widget: MaterialSettingsWidget,
     ) -> None:
+
         if self.base_color_settings_widget.is_enabled():
             base_color_widget = (
                 material_settings_widget.get_base_color_settings_widget()
@@ -530,6 +547,8 @@ class TextureConnectorUI(QtWidgets.QDialog):
 
             self.geometry = self.saveGeometry()
 
+        self._delete_script_jobs()
+
         self.settings_widget.delete_call_backs()
 
     def showEvent(self, event: QtGui.QShowEvent) -> None:
@@ -537,6 +556,8 @@ class TextureConnectorUI(QtWidgets.QDialog):
 
         if self.geometry:
             self.restoreGeometry(self.geometry)
+
+        self._create_script_jobs()
 
         self.settings_widget.create_call_backs()
 

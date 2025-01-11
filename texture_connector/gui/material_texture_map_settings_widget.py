@@ -113,3 +113,12 @@ class MaterialTextureMapSettingsWidget(QtWidgets.QWidget):
         self.height_texture_map_settings_widget.set_read_only()
         self.emissive_texture_map_settings_widget.set_read_only()
         self.opacity_texture_map_settings_widget.set_read_only()
+
+    def update_color_spaces(self) -> None:
+        self.base_color_texture_map_settings_widget.update_color_spaces()
+        self.roughness_texture_map_settings_widget.update_color_spaces()
+        self.metalness_texture_map_settings_widget.update_color_spaces()
+        self.normal_texture_map_settings_widget.update_color_spaces()
+        self.height_texture_map_settings_widget.update_color_spaces()
+        self.emissive_texture_map_settings_widget.update_color_spaces()
+        self.opacity_texture_map_settings_widget.update_color_spaces()

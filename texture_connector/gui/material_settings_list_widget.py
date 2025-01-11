@@ -79,7 +79,7 @@ class MaterialSettingsListWidget(QtWidgets.QWidget):
         self.material_list_items_widget = QtWidgets.QWidget()
         self.material_list_items_widget.setAutoFillBackground(True)
         palette = self.material_list_items_widget.palette()
-        palette.setColor(QtGui.QPalette.Background, QtGui.QColor(40, 40, 40))
+        palette.setColor(QtGui.QPalette.Window, QtGui.QColor(40, 40, 40))
         self.material_list_items_widget.setPalette(palette)
         scroll_area.setWidget(self.material_list_items_widget)
 
@@ -410,3 +410,7 @@ class MaterialSettingsListWidget(QtWidgets.QWidget):
 
             if texture_map_type == config.TextureMaps.OPACITY:
                 self.set_opacity_widgets_enabled(enabled)
+
+    def update_color_spaces(self) -> None:
+        for material_widget in self.get_material_settings_widgets():
+            material_widget.update_color_spaces()

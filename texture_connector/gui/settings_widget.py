@@ -25,7 +25,6 @@ from texture_connector.gui.texture_map_settings_widget import TextureMapSettings
 from texture_connector.config import RenderPlugins
 from texture_connector.config import UVTilingModes
 from texture_connector.config import TextureMaps
-from texture_connector.config import ColorSpaces
 import texture_connector.utils as utils
 
 
@@ -191,7 +190,7 @@ class SettingsWidget(QtWidgets.QWidget):
             s.value("baseColorSuffix", TextureMaps.BASE_COLOR, str)
         )
         self.base_color_settings_widget.set_color_space(
-            s.value("baseColorColorSpace", ColorSpaces.SRGB.value, str)
+            s.value("baseColorColorSpace", "sRGB", str)
         )
 
         self.roughness_settings_widget.set_enabled(
@@ -201,7 +200,7 @@ class SettingsWidget(QtWidgets.QWidget):
             s.value("roughnessSuffix", TextureMaps.ROUGHNESS, str)
         )
         self.roughness_settings_widget.set_color_space(
-            s.value("roughnessColorSpace", ColorSpaces.RAW.value, str)
+            s.value("roughnessColorSpace", "Raw", str)
         )
 
         self.metalness_settings_widget.set_enabled(
@@ -211,7 +210,7 @@ class SettingsWidget(QtWidgets.QWidget):
             s.value("metalnessSuffix", TextureMaps.METALNESS, str)
         )
         self.metalness_settings_widget.set_color_space(
-            s.value("metalnessColorSpace", ColorSpaces.RAW.value, str)
+            s.value("metalnessColorSpace", "Raw", str)
         )
 
         self.normal_settings_widget.set_enabled(s.value("normalEnabled", True, bool))
@@ -219,7 +218,7 @@ class SettingsWidget(QtWidgets.QWidget):
             s.value("normalSuffix", TextureMaps.NORMAL, str)
         )
         self.normal_settings_widget.set_color_space(
-            s.value("normalColorSpace", ColorSpaces.RAW.value, str)
+            s.value("normalColorSpace", "Raw", str)
         )
 
         self.height_settings_widget.set_enabled(s.value("heightEnabled", True, bool))
@@ -227,7 +226,7 @@ class SettingsWidget(QtWidgets.QWidget):
             s.value("heightSuffix", TextureMaps.HEIGHT, str)
         )
         self.height_settings_widget.set_color_space(
-            s.value("heightColorSpace", ColorSpaces.RAW.value, str)
+            s.value("heightColorSpace", "Raw", str)
         )
 
         self.emissive_settings_widget.set_enabled(
@@ -237,7 +236,7 @@ class SettingsWidget(QtWidgets.QWidget):
             s.value("emissiveSuffix", TextureMaps.EMISSIVE, str)
         )
         self.emissive_settings_widget.set_color_space(
-            s.value("emissiveColorSpace", ColorSpaces.SRGB.value, str)
+            s.value("emissiveColorSpace", "sRGB", str)
         )
 
         self.opacity_settings_widget.set_enabled(s.value("opacityEnabled", True, bool))
@@ -245,7 +244,7 @@ class SettingsWidget(QtWidgets.QWidget):
             s.value("opacitySuffix", TextureMaps.OPACITY, str)
         )
         self.opacity_settings_widget.set_color_space(
-            s.value("opacityColorSpace", ColorSpaces.RAW.value, str)
+            s.value("opacityColorSpace", "Raw", str)
         )
 
         self.uv_tiling_mode_combo_box.setCurrentText(
@@ -376,3 +375,6 @@ class SettingsWidget(QtWidgets.QWidget):
 
     def set_color_spaces_visible(self, enabled: bool) -> None:
         self.material_texture_map_settings_widget.set_color_spaces_visible(enabled)
+
+    def update_color_spaces(self) -> None:
+        self.material_texture_map_settings_widget.update_color_spaces()

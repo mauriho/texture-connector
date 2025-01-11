@@ -145,3 +145,6 @@ class MaterialSettingsWidget(QtWidgets.QWidget):
 
     def set_material_name(self, name: str) -> None:
         self.text_line_edit.setText(name)
+
+    def update_color_spaces(self) -> None:
+        self.material_texture_map_settings_widget.update_color_spaces()
