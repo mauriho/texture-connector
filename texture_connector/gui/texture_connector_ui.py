@@ -2,19 +2,19 @@
 ========================================================================================
 Name: texture_connector_ui.py
 Author: Mauricio Gonzalez Soto
-Updated Date: 01-10-2025
+Updated Date: 01-25-2025
 
 Copyright (C) 2024 Mauricio Gonzalez Soto. All rights reserved.
 ========================================================================================
 """
 
 try:
-    from shiboken6 import wrapInstance
+    from shiboken6 import getCppPointer
     from PySide6 import QtWidgets
     from PySide6 import QtCore
     from PySide6 import QtGui
 except ImportError:
-    from shiboken2 import wrapInstance
+    from shiboken2 import getCppPointer
     from PySide2 import QtWidgets
     from PySide2 import QtCore
     from PySide2 import QtGui
@@ -37,36 +37,59 @@ from texture_connector.config import RenderPlugins
 import texture_connector.utils as utils
 
 
-class TextureConnectorUI(QtWidgets.QDialog):
+class WorkspaceControl:
+
+    def __init__(self, name: str) -> None:
+        self.name = name
+
+    def create(self, label: str, ui_script: str, widget: QtWidgets.QWidget) -> None:
+        cmds.workspaceControl(self.name, label=label)
+        cmds.workspaceControl(self.name, edit=True, uiScript=ui_script)
+
+        self.add_widget(widget)
+        self.set_visible(True)
+
+    def add_widget(self, widget: QtWidgets.QWidget) -> None:
+        widget.setAttribute(QtCore.Qt.WA_DontCreateNativeAncestors)
+
+        workspace_control_ptr = int(MQtUtil.findControl(self.name))
+        widget_ptr = int(getCppPointer(widget)[0])
+
+        MQtUtil.addWidgetToMayaLayout(widget_ptr, workspace_control_ptr)
+
+    def exists(self) -> bool:
+        return cmds.workspaceControl(self.name, query=True, exists=True)
+
+    def set_visible(self, visible: bool) -> None:
+        if visible:
+            cmds.workspaceControl(self.name, edit=True, restore=True)
+        else:
+            cmds.workspaceControl(self.name, edit=True, visible=False)
+
+
+class TextureConnectorUI(QtWidgets.QWidget):
     WINDOW_NAME = "textureConnector"
     WINDOW_TITLE = "Texture Connector"
 
     PREFERENCES_PATH = utils.get_preferences_path()
 
-    dialog_instance = None
+    ui_instance = None
 
     @classmethod
     def display(cls) -> None:
-        if not cls.dialog_instance:
-            cls.dialog_instance = TextureConnectorUI()
-
-        if cls.dialog_instance.isHidden():
-            cls.dialog_instance.show()
+        if cls.ui_instance:
+            cls.ui_instance._show_workspace_control()
         else:
-            cls.dialog_instance.raise_()
-            cls.dialog_instance.activateWindow()
+            cls.ui_instance = TextureConnectorUI()
 
     @classmethod
-    def maya_main_window(cls) -> QtWidgets.QWidget:
-        main_window_ptr = MQtUtil.mainWindow()
-        main_window = wrapInstance(int(main_window_ptr), QtWidgets.QWidget)
+    def get_workspace_control_name(cls) -> str:
+        workspace_control_name = f"{cls.WINDOW_NAME}WorkspaceControl"
 
-        return main_window
+        return workspace_control_name
 
     def __init__(self) -> None:
-        super().__init__(self.maya_main_window())
-
-        self.geometry = None
+        super().__init__()
 
         self.script_jobs = []
 
@@ -74,14 +97,14 @@ class TextureConnectorUI(QtWidgets.QDialog):
         self.auto_set_project_source_images_folder = False
         self.use_maya_color_space_rules = False
 
-        self.resize(800, 600)
+        self.setMinimumSize(800, 600)
         self.setObjectName(TextureConnectorUI.WINDOW_NAME)
-        self.setWindowTitle(TextureConnectorUI.WINDOW_TITLE)
 
         self._load_preferences()
         self._create_widgets()
         self._create_layouts()
         self._create_connections()
+        self._create_workspace_control()
 
     def _create_widgets(self) -> None:
         self.menu_bar = QtWidgets.QMenuBar()
@@ -229,6 +252,23 @@ class TextureConnectorUI(QtWidgets.QDialog):
         )
 
         self.preferences_ui.save_clicked.connect(self._preferences_ui_save_clicked)
+
+    def _create_workspace_control(self) -> None:
+        self.workspace_control_instance = WorkspaceControl(
+            self.get_workspace_control_name()
+        )
+        if self.workspace_control_instance.exists():
+            self.workspace_control_instance.add_widget(self)
+        else:
+            self.workspace_control_instance.create(
+                label=self.WINDOW_TITLE,
+                ui_script="from texture_connector import TextureConnectorUI\n"
+                          "TextureConnectorUI.display()",
+                widget=self,
+            )
+
+    def _show_workspace_control(self):
+        self.workspace_control_instance.set_visible(True)
 
     def _save_settings(self) -> None:
         self.settings_widget.save_settings()
@@ -542,10 +582,7 @@ class TextureConnectorUI(QtWidgets.QDialog):
                 utils.Logger.error(f"{source_images_folder!r} folder does not exist.")
 
     def closeEvent(self, event: QtGui.QCloseEvent) -> None:
-        if isinstance(self, TextureConnectorUI):
-            super().closeEvent(event)
-
-            self.geometry = self.saveGeometry()
+        super().closeEvent(event)
 
         self._delete_script_jobs()
 
@@ -554,12 +591,8 @@ class TextureConnectorUI(QtWidgets.QDialog):
     def showEvent(self, event: QtGui.QShowEvent) -> None:
         super().showEvent(event)
 
-        if self.geometry:
-            self.restoreGeometry(self.geometry)
-
-        self._create_script_jobs()
-
         self.settings_widget.create_call_backs()
 
+        self._create_script_jobs()
         self._load_preferences()
         self._set_project_source_images_folder()
