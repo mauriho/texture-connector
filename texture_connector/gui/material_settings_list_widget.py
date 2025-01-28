@@ -2,7 +2,7 @@
 ========================================================================================
 Name: material_settings_list_widget.py
 Author: Mauricio Gonzalez Soto
-Updated Date: 01-10-2025
+Updated Date: 01-27-2025
 
 Copyright (C) 2024 Mauricio Gonzalez Soto. All rights reserved.
 ========================================================================================
@@ -24,7 +24,6 @@ except ImportError:
 from collections import defaultdict
 import pathlib
 import glob
-import time
 import re
 
 from texture_connector.gui.material_settings_widget import MaterialSettingsWidget
@@ -166,7 +165,7 @@ class MaterialSettingsListWidget(QtWidgets.QWidget):
         else:
             files = glob.glob(f"{self.folder_path}/*")
 
-        files.sort(reverse=True)
+        files.sort()
 
         for file_path in files:
             path = pathlib.Path(file_path)
@@ -207,8 +206,6 @@ class MaterialSettingsListWidget(QtWidgets.QWidget):
     def create_material_settings_widgets(self) -> None:
         self._load_preferences()
         self.clear_material_settings_widgets()
-
-        time_start = time.time()
 
         material_texture_paths = self._get_material_texture_paths()
 
@@ -259,12 +256,6 @@ class MaterialSettingsListWidget(QtWidgets.QWidget):
                     opacity_widget = material_widget.get_opacity_settings_widget()
                     opacity_widget.set_path(texture_path)
                     opacity_widget.set_text(texture_path_short_name)
-
-        time_end = time.time()
-
-        utils.Logger.debug(
-            f"Material settings widgets created in {time_end - time_start:.04f}."
-        )
 
         self._search_material_text_changed_line_edit()
 
