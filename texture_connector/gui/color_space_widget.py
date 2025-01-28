@@ -2,7 +2,7 @@
 ========================================================================================
 Name: color_space_widget.py
 Author: Mauricio Gonzalez Soto
-Updated Date: 01-10-2025
+Updated Date: 01-27-2025
 
 Copyright (C) 2024 Mauricio Gonzalez Soto. All rights reserved.
 ========================================================================================
@@ -29,6 +29,7 @@ class ColorSpaceWidget(QtWidgets.QWidget):
         super().__init__()
 
         self.setSizePolicy(QtWidgets.QSizePolicy.Maximum, QtWidgets.QSizePolicy.Maximum)
+        self.setMinimumWidth(100)
 
         self.color_spaces = {}
 
