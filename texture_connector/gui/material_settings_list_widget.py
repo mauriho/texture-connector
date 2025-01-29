@@ -2,7 +2,7 @@
 ========================================================================================
 Name: material_settings_list_widget.py
 Author: Mauricio Gonzalez Soto
-Updated Date: 01-27-2025
+Updated Date: 01-29-2025
 
 Copyright (C) 2024 Mauricio Gonzalez Soto. All rights reserved.
 ========================================================================================
@@ -121,11 +121,13 @@ class MaterialSettingsListWidget(QtWidgets.QWidget):
 
     def _unselect_all_clicked_action(self) -> None:
         for material_settings_widget in self.get_material_settings_widgets():
-            material_settings_widget.set_enabled(False)
+            if material_settings_widget.isVisible():
+                material_settings_widget.set_enabled(False)
 
     def _select_all_clicked_action(self) -> None:
         for material_settings_widget in self.get_material_settings_widgets():
-            material_settings_widget.set_enabled(True)
+            if material_settings_widget.isVisible():
+                material_settings_widget.set_enabled(True)
 
     def _update_materials_clicked_push_button(self) -> None:
         self.update_clicked.emit()

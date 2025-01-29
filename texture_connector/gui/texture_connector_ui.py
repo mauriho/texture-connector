@@ -2,7 +2,7 @@
 ========================================================================================
 Name: texture_connector_ui.py
 Author: Mauricio Gonzalez Soto
-Updated Date: 01-25-2025
+Updated Date: 01-29-2025
 
 Copyright (C) 2024 Mauricio Gonzalez Soto. All rights reserved.
 ========================================================================================
@@ -417,8 +417,8 @@ class TextureConnectorUI(QtWidgets.QWidget):
         materials = self.material_settings_list_widget.get_material_settings_widgets()
         count = 0
 
-        for material_settings_widget in materials:
-            if material_settings_widget.is_enabled():
+        for material in materials:
+            if material.is_enabled() and material.isVisible():
                 if render_engine == RenderPlugins.ARNOLD.value[0]:
                     material_network = CreateMaterialNetworkArnold()
                 elif render_engine == RenderPlugins.REDSHIFT.value[0]:
@@ -435,7 +435,7 @@ class TextureConnectorUI(QtWidgets.QWidget):
                 if material_network:
                     self._create_material_network(
                         material_network=material_network,
-                        material_settings_widget=material_settings_widget,
+                        material_settings_widget=material,
                     )
 
                     count += 1
