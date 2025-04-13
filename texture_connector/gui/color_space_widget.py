@@ -2,7 +2,7 @@
 ========================================================================================
 Name: color_space_widget.py
 Author: Mauricio Gonzalez Soto
-Updated Date: 01-27-2025
+Updated Date: 04-12-2025
 
 Copyright (C) 2024 Mauricio Gonzalez Soto. All rights reserved.
 ========================================================================================
@@ -114,8 +114,8 @@ class ColorSpaceWidget(QtWidgets.QWidget):
             label_palette = self.label_push_button.palette()
             icon_palette = self.icon_push_button.palette()
 
-            button_color = QtGui.QColor(QtCore.Qt.red)
-            text_color = QtGui.QColor(QtCore.Qt.black)
+            button_color = QtGui.QColor(251, 65, 65)
+            text_color = QtGui.QColor(0, 0, 0)
 
             label_palette.setColor(QtGui.QPalette.Button, button_color)
             label_palette.setColor(QtGui.QPalette.ButtonText, text_color)
