@@ -2,7 +2,7 @@
 ========================================================================================
 Name: texture_connector_ui.py
 Author: Mauricio Gonzalez Soto
-Updated Date: 01-29-2025
+Updated Date: 04-12-2025
 
 Copyright (C) 2024 Mauricio Gonzalez Soto. All rights reserved.
 ========================================================================================
@@ -96,6 +96,7 @@ class TextureConnectorUI(QtWidgets.QWidget):
         self.preferences_ui = PreferencesUI(self)
         self.auto_set_project_source_images_folder = False
         self.use_maya_color_space_rules = False
+        self.do_not_create_existing_materials = False
 
         self.setMinimumSize(800, 600)
         self.setObjectName(TextureConnectorUI.WINDOW_NAME)
@@ -152,6 +153,9 @@ class TextureConnectorUI(QtWidgets.QWidget):
         )
 
         self.material_settings_list_widget = MaterialSettingsListWidget()
+        self.material_settings_list_widget.set_render_engine(
+            self.settings_widget.get_render_engine()
+        )
 
         self.create_materials_push_button = QtWidgets.QPushButton("Create Materials")
 
@@ -200,6 +204,9 @@ class TextureConnectorUI(QtWidgets.QWidget):
             self._select_folder_path_clicked_push_button
         )
 
+        self.settings_widget.render_engine_changed.connect(
+            self._render_engine_changed_settings_widget
+        )
         self.base_color_settings_widget.color_space_changed.connect(
             self._base_color_settings_color_space_changed_widget
         )
@@ -294,6 +301,12 @@ class TextureConnectorUI(QtWidgets.QWidget):
         )
         s.endGroup()
 
+        s.beginGroup("materialCreation")
+        self.do_not_create_existing_materials = s.value(
+            "doNotCreateExistingMaterials", True, bool
+        )
+        s.endGroup()
+
         s.beginGroup("colorManagement")
         self.use_maya_color_space_rules = s.value("useMayaColorSpaceRules", False, bool)
         s.endGroup()
@@ -308,6 +321,10 @@ class TextureConnectorUI(QtWidgets.QWidget):
             )
         )
 
+        self.script_jobs.append(
+            cmds.scriptJob(event=["SceneOpened", self._on_scene_opened])
+        )
+
     def _delete_script_jobs(self) -> None:
         for script_job in self.script_jobs:
             cmds.scriptJob(kill=script_job)
@@ -315,6 +332,9 @@ class TextureConnectorUI(QtWidgets.QWidget):
     def _on_color_mgt_config_file_path_changed(self) -> None:
         self.settings_widget.update_color_spaces()
         self.material_settings_list_widget.update_color_spaces()
+
+    def _on_scene_opened(self) -> None:
+        self.material_settings_list_widget.update_material_status()
 
     def _folder_path_return_pressed_line_edit(self) -> None:
         folder_path = self.folder_path_line_edit.text()
@@ -338,6 +358,10 @@ class TextureConnectorUI(QtWidgets.QWidget):
             self.folder_path_line_edit.setText(folder_path)
             self.material_settings_list_widget.set_folder_path(folder_path)
             self._create_material_settings_widgets()
+
+    def _render_engine_changed_settings_widget(self, render_engine: str) -> None:
+        self.material_settings_list_widget.set_render_engine(render_engine)
+        self.material_settings_list_widget.update_material_status()
 
     def _base_color_settings_color_space_changed_widget(self) -> None:
         self.material_settings_list_widget.set_base_color_widgets_color_space(
@@ -411,6 +435,7 @@ class TextureConnectorUI(QtWidgets.QWidget):
 
     def _material_settings_list_update_clicked_widget(self) -> None:
         self._create_material_settings_widgets()
+        self.material_settings_list_widget.update_material_status()
 
     def _create_materials_clicked_push_button(self) -> None:
         render_engine = self.settings_widget.get_render_engine()
@@ -432,6 +457,10 @@ class TextureConnectorUI(QtWidgets.QWidget):
 
                     return
 
+                if self.do_not_create_existing_materials:
+                    if material.get_material_exists():
+                        continue
+
                 if material_network:
                     self._create_material_network(
                         material_network=material_network,
@@ -439,6 +468,8 @@ class TextureConnectorUI(QtWidgets.QWidget):
                     )
 
                     count += 1
+
+        self.material_settings_list_widget.update_material_status()
 
         if count:
             utils.Logger.info(f"{count} material(s) created.")
@@ -462,9 +493,9 @@ class TextureConnectorUI(QtWidgets.QWidget):
         )
 
     def _create_material_network(
-        self,
-        material_network: CreateMaterialNetwork,
-        material_settings_widget: MaterialSettingsWidget,
+            self,
+            material_network: CreateMaterialNetwork,
+            material_settings_widget: MaterialSettingsWidget,
     ) -> None:
 
         if self.base_color_settings_widget.is_enabled():

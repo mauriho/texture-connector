@@ -2,7 +2,7 @@
 ========================================================================================
 Name: material_settings_list_widget.py
 Author: Mauricio Gonzalez Soto
-Updated Date: 01-29-2025
+Updated Date: 04-12-2025
 
 Copyright (C) 2024 Mauricio Gonzalez Soto. All rights reserved.
 ========================================================================================
@@ -20,6 +20,8 @@ except ImportError:
     from PySide2 import QtCore
     from PySide2 import QtGui
     from shiboken2 import delete
+
+import maya.cmds as cmds
 
 from collections import defaultdict
 import pathlib
@@ -48,6 +50,7 @@ class MaterialSettingsListWidget(QtWidgets.QWidget):
 
         self.folder_path = ""
         self.texture_maps_suffix = ()
+        self.render_engine = ""
 
         self._create_widgets()
         self._create_layouts()
@@ -115,8 +118,10 @@ class MaterialSettingsListWidget(QtWidgets.QWidget):
 
         for material_settings_widget in self.get_material_settings_widgets():
             if text_lower in material_settings_widget.get_material_name().lower():
+                material_settings_widget.set_enabled(True)
                 material_settings_widget.setVisible(True)
             else:
+                material_settings_widget.set_enabled(False)
                 material_settings_widget.setVisible(False)
 
     def _unselect_all_clicked_action(self) -> None:
@@ -259,6 +264,7 @@ class MaterialSettingsListWidget(QtWidgets.QWidget):
                     opacity_widget.set_path(texture_path)
                     opacity_widget.set_text(texture_path_short_name)
 
+        self.update_material_status()
         self._search_material_text_changed_line_edit()
 
     def get_material_settings_widgets(self) -> list[MaterialSettingsWidget]:
@@ -269,6 +275,20 @@ class MaterialSettingsListWidget(QtWidgets.QWidget):
                 material_settings_widgets.append(child)
 
         return material_settings_widgets
+
+    def _material_exists(self, material_name: str) -> bool:
+        if self.render_engine == config.render_plugins.RenderPlugins.ARNOLD.value[0]:
+            material_type = "aiStandardSurface"
+        elif self.render_engine == config.render_plugins.RenderPlugins.REDSHIFT.value[0]:
+            material_type = "RedshiftStandardMaterial"
+        elif self.render_engine == config.render_plugins.RenderPlugins.V_RAY.value[0]:
+            material_type = "VRayMtl"
+        else:
+            return False
+
+        material_exits = cmds.objExists(f"{material_name}_{material_type}")
+
+        return material_exits
 
     def set_color_spaces_visible(self, enabled: bool) -> None:
         for material_widget in self.get_material_settings_widgets():
@@ -354,6 +374,9 @@ class MaterialSettingsListWidget(QtWidgets.QWidget):
             opacity_widget = material_widget.get_opacity_settings_widget()
             opacity_widget.setVisible(enabled)
 
+    def set_render_engine(self, render_engine: str) -> None:
+        self.render_engine = render_engine
+
     def set_texture_map_widgets_color_space(
         self, widgets_color_space: tuple[tuple[str, str], ...]
     ) -> None:
@@ -407,3 +430,8 @@ class MaterialSettingsListWidget(QtWidgets.QWidget):
     def update_color_spaces(self) -> None:
         for material_widget in self.get_material_settings_widgets():
             material_widget.update_color_spaces()
+
+    def update_material_status(self) -> None:
+        for material_widget in self.get_material_settings_widgets():
+            material_exists = self._material_exists(material_widget.get_material_name())
+            material_widget.set_material_exists(material_exists)

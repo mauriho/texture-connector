@@ -2,7 +2,7 @@
 ========================================================================================
 Name: preferences_ui.py
 Author: Mauricio Gonzalez Soto
-Updated Date: 01-10-2025
+Updated Date: 04-12-2025
 
 Copyright (C) 2024 Mauricio Gonzalez Soto. All rights reserved.
 ========================================================================================
@@ -19,7 +19,6 @@ except ImportError:
     from PySide2 import QtCore
     from PySide2 import QtGui
 
-
 import texture_connector.utils as utils
 
 
@@ -30,6 +29,7 @@ class PreferencesUI(QtWidgets.QDialog):
     PREFERENCES_PATH = utils.get_preferences_path()
 
     GENERAL = "General"
+    MATERIAL_CREATION = "Material Creation"
     COLOR_MANAGEMENT = "Color Management"
 
     save_clicked = QtCore.Signal()
@@ -50,7 +50,11 @@ class PreferencesUI(QtWidgets.QDialog):
     def _create_widgets(self) -> None:
         self.categories_list_widget = QtWidgets.QListWidget()
         self.categories_list_widget.addItems(
-            [PreferencesUI.GENERAL, PreferencesUI.COLOR_MANAGEMENT]
+            [
+                PreferencesUI.GENERAL,
+                PreferencesUI.MATERIAL_CREATION,
+                PreferencesUI.COLOR_MANAGEMENT,
+            ]
         )
         self.categories_list_widget.setCurrentRow(0)
         self.categories_list_widget.setFixedWidth(150)
@@ -58,9 +62,15 @@ class PreferencesUI(QtWidgets.QDialog):
         self.search_files_in_subdirectories_check_box = QtWidgets.QCheckBox(
             "Search files in subdirectories"
         )
+
         self.auto_set_project_source_images_folder_check_box = QtWidgets.QCheckBox(
             "Auto-set project sourceimages folder"
         )
+
+        self.do_not_create_existing_materials_check_box = QtWidgets.QCheckBox(
+            "Do not create existing materials"
+        )
+
         self.use_maya_color_space_rules_check_box = QtWidgets.QCheckBox(
             "Use Maya color space rules"
         )
@@ -98,6 +108,18 @@ class PreferencesUI(QtWidgets.QDialog):
         general_form_layout.setSpacing(3)
         self.general_group_box.setLayout(general_form_layout)
 
+        self.material_creation_group_box = QtWidgets.QGroupBox("Material Creation")
+        self.material_creation_group_box.setVisible(False)
+        right_layout.addWidget(self.material_creation_group_box)
+
+        material_creation_form_layout = QtWidgets.QFormLayout()
+        material_creation_form_layout.addWidget(
+            self.do_not_create_existing_materials_check_box
+        )
+        material_creation_form_layout.setContentsMargins(3, 3, 3, 3)
+        material_creation_form_layout.setSpacing(3)
+        self.material_creation_group_box.setLayout(material_creation_form_layout)
+
         self.color_management_group_box = QtWidgets.QGroupBox("Color Management")
         self.color_management_group_box.setVisible(False)
         right_layout.addWidget(self.color_management_group_box)
@@ -124,16 +146,19 @@ class PreferencesUI(QtWidgets.QDialog):
         self.cancel_push_button.clicked.connect(self.close)
 
     def _categories_item_clicked_list_widget(
-        self, item: QtWidgets.QListWidgetItem
+            self, item: QtWidgets.QListWidgetItem
     ) -> None:
 
         self.general_group_box.setVisible(False)
+        self.material_creation_group_box.setVisible(False)
         self.color_management_group_box.setVisible(False)
 
         category = item.text()
 
         if category == PreferencesUI.GENERAL:
             self.general_group_box.setVisible(True)
+        elif category == PreferencesUI.MATERIAL_CREATION:
+            self.material_creation_group_box.setVisible(True)
         elif category == PreferencesUI.COLOR_MANAGEMENT:
             self.color_management_group_box.setVisible(True)
 
@@ -155,6 +180,12 @@ class PreferencesUI(QtWidgets.QDialog):
         )
         s.endGroup()
 
+        s.beginGroup("materialCreation")
+        self.do_not_create_existing_materials_check_box.setChecked(
+            bool(s.value("doNotCreateExistingMaterials", True, bool))
+        )
+        s.endGroup()
+
         s.beginGroup("colorManagement")
         self.use_maya_color_space_rules_check_box.setChecked(
             bool(s.value("useMayaColorSpaceRules", False, bool))
@@ -172,6 +203,13 @@ class PreferencesUI(QtWidgets.QDialog):
         s.setValue(
             "autoSetProjectSourceImagesFolder",
             self.auto_set_project_source_images_folder_check_box.isChecked(),
+        )
+        s.endGroup()
+
+        s.beginGroup("materialCreation")
+        s.setValue(
+            "doNotCreateExistingMaterials",
+            self.do_not_create_existing_materials_check_box.isChecked(),
         )
         s.endGroup()
 

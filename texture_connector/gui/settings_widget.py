@@ -2,7 +2,7 @@
 ========================================================================================
 Name: settings_widget.py
 Author: Mauricio Gonzalez Soto
-Updated Date: 01-10-2025
+Updated Date: 04-12-2025
 
 Copyright (C) 2024 Mauricio Gonzalez Soto. All rights reserved.
 ========================================================================================
@@ -31,6 +31,8 @@ import texture_connector.utils as utils
 class SettingsWidget(QtWidgets.QWidget):
     PREFERENCES_PATH = utils.get_preferences_path()
 
+    render_engine_changed = QtCore.Signal(str)
+
     def __init__(self) -> None:
         super().__init__()
 
@@ -48,6 +50,7 @@ class SettingsWidget(QtWidgets.QWidget):
 
         self._create_widgets()
         self._create_layouts()
+        self._create_connections()
         self._set_render_engines()
         self.load_settings(SettingsWidget.PREFERENCES_PATH)
 
@@ -134,6 +137,11 @@ class SettingsWidget(QtWidgets.QWidget):
         triplanar_form_layout.setSpacing(3)
         triplanar_group_box.setLayout(triplanar_form_layout)
 
+    def _create_connections(self) -> None:
+        self.render_engine_combo_box.currentTextChanged.connect(
+            self._render_engine_current_text_changed_combo_box
+        )
+
     def create_call_backs(self) -> None:
         utils.Logger.debug(f"Callbacks before creating {self.call_backs}.")
 
@@ -162,6 +170,9 @@ class SettingsWidget(QtWidgets.QWidget):
             self.call_backs.clear()
 
         utils.Logger.debug(f"Callbacks after deleting {self.call_backs}.")
+
+    def _render_engine_current_text_changed_combo_box(self, render_engine: str) -> None:
+        self.render_engine_changed.emit(render_engine)
 
     def _set_render_engines(self, *args) -> None:
         plugins_loaded = cmds.pluginInfo(listPlugins=True, query=True)
